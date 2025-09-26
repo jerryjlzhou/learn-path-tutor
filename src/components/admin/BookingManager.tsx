@@ -100,8 +100,7 @@ export function BookingManager() {
     // Search filter
     if (searchTerm.trim()) {
       filtered = filtered.filter(booking =>
-        booking.profiles.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (booking.profiles.email && booking.profiles.email.toLowerCase().includes(searchTerm.toLowerCase()))
+        booking.profiles.full_name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
