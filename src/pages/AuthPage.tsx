@@ -137,11 +137,26 @@ export function AuthPage() {
 
       if (error) throw error;
 
+      // Get user profile to determine redirect
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+
+        // Redirect students to profile page, admins to home
+        const redirectPath = profile?.role === 'student' ? '/profile' : '/';
+        navigate(redirectPath);
+      } else {
+        navigate('/');
+      }
+
       toast({
         title: "Welcome back!",
         description: "You have been signed in successfully.",
       });
-      navigate('/');
     } catch (error: any) {
       toast({
         title: "Sign in failed",

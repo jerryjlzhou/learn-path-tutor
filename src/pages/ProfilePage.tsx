@@ -27,6 +27,7 @@ import { ForumManager } from '@/components/admin/ForumManager';
 import { StudentManager } from '@/components/admin/StudentManager';
 import { BookingManager } from '@/components/admin/BookingManager';
 import { ProfileSettings } from '@/components/admin/ProfileSettings';
+import { StudentMessages } from '@/components/student/StudentMessages';
 
 export function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -194,7 +195,7 @@ export function ProfilePage() {
           ) : (
             /* Student Profile */
             <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">
                   <User className="h-4 w-4 mr-2" />
                   Overview
@@ -203,6 +204,10 @@ export function ProfilePage() {
                   <BookOpen className="h-4 w-4 mr-2" />
                   My Bookings
                 </TabsTrigger>
+                <TabsTrigger value="messages">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Messages
+                </TabsTrigger>
                 <TabsTrigger value="settings">
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
@@ -210,16 +215,30 @@ export function ProfilePage() {
               </TabsList>
 
               <TabsContent value="overview">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Student Dashboard</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">
-                      Welcome to your student dashboard. Here you can view your bookings and manage your profile.
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Student Dashboard</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <p className="text-muted-foreground">
+                        Welcome to your student dashboard. Here you can view your bookings and manage your profile.
+                      </p>
+                      
+                      {/* Quick Action Button */}
+                      <div className="flex justify-center">
+                        <Button 
+                          size="lg" 
+                          onClick={() => navigate('/booking')}
+                          className="text-lg px-8 py-6"
+                        >
+                          <Calendar className="h-5 w-5 mr-3" />
+                          Book Your Next Lesson
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
 
               <TabsContent value="bookings">
@@ -233,6 +252,10 @@ export function ProfilePage() {
                     </p>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="messages">
+                <StudentMessages />
               </TabsContent>
 
               <TabsContent value="settings">
