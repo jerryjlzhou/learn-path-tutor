@@ -26,7 +26,7 @@ interface Message {
   profiles: {
     full_name: string;
     role: string;
-    profile_picture_url?: string;
+    profile_picture_url?: string | null;
   };
 }
 
@@ -82,7 +82,7 @@ export function StudentMessages() {
               return {
                 ...message,
                 profiles: profile || { full_name: 'Unknown User', role: 'student', profile_picture_url: null }
-              };
+              } as Message;
             })
           );
 
