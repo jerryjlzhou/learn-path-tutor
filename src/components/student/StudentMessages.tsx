@@ -47,25 +47,50 @@ export function StudentMessages() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: threadsData, error } = await supabase
+      // First get threads
+      const { data: threadsData, error: threadsError } = await supabase
         .from('message_threads')
-        .select(`
-          *,
-          messages (
-            *,
-            profiles!messages_sender_id_fkey (
-              full_name,
-              role,
-              profile_picture_url
-            )
-          )
-        `)
+        .select('*')
         .eq('student_id', user.id)
         .order('last_message_at', { ascending: false });
 
-      if (error) throw error;
+      if (threadsError) throw threadsError;
 
-      setThreads(threadsData || []);
+      // Then get messages for each thread and their profiles separately
+      const threadsWithMessages = await Promise.all(
+        (threadsData || []).map(async (thread) => {
+          const { data: messages, error: messagesError } = await supabase
+            .from('messages')
+            .select('*')
+            .eq('thread_id', thread.id)
+            .order('created_at', { ascending: true });
+
+          if (messagesError) {
+            console.error('Error loading messages for thread:', messagesError);
+            return { ...thread, messages: [] };
+          }
+
+          // Get profiles for message senders
+          const messagesWithProfiles = await Promise.all(
+            (messages || []).map(async (message) => {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name, role, profile_picture_url')
+                .eq('user_id', message.sender_id)
+                .single();
+
+              return {
+                ...message,
+                profiles: profile || { full_name: 'Unknown User', role: 'student', profile_picture_url: null }
+              };
+            })
+          );
+
+          return { ...thread, messages: messagesWithProfiles };
+        })
+      );
+
+      setThreads(threadsWithMessages);
     } catch (error) {
       console.error('Error loading threads:', error);
       toast({
