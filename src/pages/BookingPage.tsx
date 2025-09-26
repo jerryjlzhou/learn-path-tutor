@@ -4,10 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, MapPin, Gift } from 'lucide-react';
 import { Layout } from '@/components/Layout';
+import { getHourlyRate, isValidSessionMode, type SessionMode } from '@/lib/pricing';
 
 export function BookingPage() {
   const [searchParams] = useSearchParams();
   const isFreeTrial = searchParams.get('trial') === 'true';
+  const modeParam = searchParams.get('mode');
+  const mode: SessionMode = isValidSessionMode(modeParam) ? modeParam : 'online';
+  
+  const hourlyRate = getHourlyRate(mode);
+  const modeDisplay = mode === 'online' ? 'Online' : 'In-Person';
 
   return (
     <Layout>
@@ -49,7 +55,7 @@ export function BookingPage() {
                   <MapPin className="h-5 w-5 text-secondary" />
                   <div>
                     <p className="font-medium">Location</p>
-                    <p className="text-sm text-muted-foreground">Online or In-Person</p>
+                    <p className="text-sm text-muted-foreground">{modeDisplay} Session</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -57,7 +63,7 @@ export function BookingPage() {
                   <div>
                     <p className="font-medium">Price</p>
                     <p className="text-sm text-muted-foreground">
-                      {isFreeTrial ? 'Free Trial' : '$60 AUD/hour'}
+                      {isFreeTrial ? 'Free Trial' : `$${hourlyRate} AUD/hour`}
                     </p>
                   </div>
                 </div>

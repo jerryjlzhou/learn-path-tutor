@@ -45,7 +45,7 @@ export function CTASection() {
                   <Calendar className="h-12 w-12 text-secondary mx-auto mb-4" />
                   <h3 className="text-2xl font-bold mb-2">Book a Session</h3>
                   <p className="text-muted-foreground mb-6">
-                    Schedule your regular tutoring session at $60/hour with flexible timing
+                    Schedule your regular tutoring session from $60/hour (online) with flexible timing
                   </p>
                 </div>
                 <Link to="/booking">
@@ -55,7 +55,7 @@ export function CTASection() {
                   </Button>
                 </Link>
                 <p className="text-sm text-muted-foreground mt-3">
-                  Online or in-person • Flexible cancellation
+                  Online $60/hr • In-person $70/hr • Flexible cancellation
                 </p>
               </CardContent>
             </Card>
