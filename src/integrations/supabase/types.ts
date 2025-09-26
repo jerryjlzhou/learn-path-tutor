@@ -21,6 +21,8 @@ export type Database = {
           end_time: string
           id: string
           is_booked: boolean
+          location: string | null
+          mode: string
           start_time: string
         }
         Insert: {
@@ -29,6 +31,8 @@ export type Database = {
           end_time: string
           id?: string
           is_booked?: boolean
+          location?: string | null
+          mode?: string
           start_time: string
         }
         Update: {
@@ -37,6 +41,8 @@ export type Database = {
           end_time?: string
           id?: string
           is_booked?: boolean
+          location?: string | null
+          mode?: string
           start_time?: string
         }
         Relationships: []

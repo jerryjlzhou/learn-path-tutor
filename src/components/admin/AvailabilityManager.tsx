@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Calendar as CalendarIcon, Clock, Plus, Trash2, Edit } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar as CalendarIcon, Clock, Plus, Trash2, Edit, MapPin, Monitor } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +18,8 @@ interface AvailabilitySlot {
   start_time: string;
   end_time: string;
   is_booked: boolean;
+  mode: 'online' | 'in-person';
+  location?: string;
   created_at: string;
 }
 
@@ -25,6 +28,8 @@ export function AvailabilityManager() {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [mode, setMode] = useState<'online' | 'in-person'>('online');
+  const [location, setLocation] = useState('');
   const [editingSlot, setEditingSlot] = useState<AvailabilitySlot | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -42,7 +47,11 @@ export function AvailabilityManager() {
         .order('start_time', { ascending: true });
 
       if (error) throw error;
-      setAvailability(data || []);
+      // Type assertion since we know the mode field will be either 'online' or 'in-person'
+      setAvailability((data || []).map(slot => ({ 
+        ...slot, 
+        mode: slot.mode as 'online' | 'in-person'
+      })));
     } catch (error) {
       console.error('Error loading availability:', error);
       toast({
@@ -81,6 +90,8 @@ export function AvailabilityManager() {
           date: format(selectedDate, 'yyyy-MM-dd'),
           start_time: startTime,
           end_time: endTime,
+          mode: mode,
+          location: mode === 'in-person' ? location : null,
           is_booked: false,
         });
 
@@ -95,6 +106,8 @@ export function AvailabilityManager() {
       setSelectedDate(undefined);
       setStartTime('');
       setEndTime('');
+      setMode('online');
+      setLocation('');
       
       // Reload availability
       loadAvailability();
@@ -113,6 +126,8 @@ export function AvailabilityManager() {
     setSelectedDate(new Date(slot.date));
     setStartTime(slot.start_time);
     setEndTime(slot.end_time);
+    setMode(slot.mode);
+    setLocation(slot.location || '');
   };
 
   const handleUpdateSlot = async () => {
@@ -134,6 +149,8 @@ export function AvailabilityManager() {
           date: format(selectedDate, 'yyyy-MM-dd'),
           start_time: startTime,
           end_time: endTime,
+          mode: mode,
+          location: mode === 'in-person' ? location : null,
         })
         .eq('id', editingSlot.id);
 
@@ -149,6 +166,8 @@ export function AvailabilityManager() {
       setSelectedDate(undefined);
       setStartTime('');
       setEndTime('');
+      setMode('online');
+      setLocation('');
       
       // Reload availability
       loadAvailability();
@@ -192,6 +211,8 @@ export function AvailabilityManager() {
     setSelectedDate(undefined);
     setStartTime('');
     setEndTime('');
+    setMode('online');
+    setLocation('');
   };
 
   const groupedAvailability = availability.reduce((acc, slot) => {
@@ -229,7 +250,7 @@ export function AvailabilityManager() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Date Picker */}
             <div className="space-y-2">
               <Label>Date</Label>
@@ -271,6 +292,44 @@ export function AvailabilityManager() {
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
+              />
+            </div>
+
+            {/* Session Mode */}
+            <div className="space-y-2">
+              <Label>Session Type</Label>
+              <Select value={mode} onValueChange={(value: 'online' | 'in-person') => setMode(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="online">
+                    <div className="flex items-center gap-2">
+                      <Monitor className="h-4 w-4" />
+                      Online
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="in-person">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      In-Person
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Location (for in-person only) */}
+            <div className="space-y-2">
+              <Label htmlFor="location">
+                Location {mode === 'in-person' && <span className="text-destructive">*</span>}
+              </Label>
+              <Input
+                id="location"
+                placeholder={mode === 'online' ? 'N/A (Online)' : 'Enter location'}
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                disabled={mode === 'online'}
               />
             </div>
           </div>
@@ -323,17 +382,37 @@ export function AvailabilityManager() {
                           className="flex items-center justify-between p-3 border rounded-lg"
                         >
                           <div className="flex items-center gap-3">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <div className="flex items-center gap-1">
+                              {slot.mode === 'online' ? (
+                                <Monitor className="h-4 w-4 text-blue-500" />
+                              ) : (
+                                <MapPin className="h-4 w-4 text-green-500" />
+                              )}
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                            </div>
                             <div>
                               <p className="font-medium">
                                 {slot.start_time} - {slot.end_time}
                               </p>
-                              <Badge 
-                                variant={slot.is_booked ? "destructive" : "secondary"}
-                                className="text-xs"
-                              >
-                                {slot.is_booked ? 'Booked' : 'Available'}
-                              </Badge>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge 
+                                  variant={slot.is_booked ? "destructive" : "secondary"}
+                                  className="text-xs"
+                                >
+                                  {slot.is_booked ? 'Booked' : 'Available'}
+                                </Badge>
+                                <Badge 
+                                  variant={slot.mode === 'online' ? "default" : "outline"}
+                                  className="text-xs"
+                                >
+                                  {slot.mode === 'online' ? 'Online' : 'In-Person'}
+                                </Badge>
+                              </div>
+                              {slot.location && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  📍 {slot.location}
+                                </p>
+                              )}
                             </div>
                           </div>
                           
