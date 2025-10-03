@@ -119,41 +119,77 @@ export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFor
         is_free_trial: isFreeTrial
       };
 
+      // Create booking first
+      const { data: createdBooking, error: bookingError } = await supabase
+        .from('bookings')
+        .insert(bookingData)
+        .select()
+        .single();
+
+      if (bookingError) throw bookingError;
+      if (!createdBooking) throw new Error('Failed to create booking');
+
+      // Mark slot as booked
+      await supabase
+        .from('availability')
+        .update({ is_booked: true })
+        .eq('id', selectedSlot.id);
+
+      // Get user profile for notifications
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user.id)
+        .single();
+
+      // Use hardcoded admin email (or you could store this in a config)
+      const adminEmail = 'jerry.zhou25@gmail.com';
+
+      // Send email notifications
+      const notificationPayload = {
+        studentEmail: user.email || '',
+        studentName: userProfile?.full_name || 'Student',
+        adminEmail,
+        bookingDetails: {
+          date: format(startDateTime, 'MMMM d, yyyy'),
+          startTime: format(startDateTime, 'h:mm a'),
+          endTime: format(endDateTime, 'h:mm a'),
+          duration,
+          mode: selectedSlot.mode,
+          location: selectedSlot.location,
+          price: calculateTotalPrice(),
+          paymentStatus: isFreeTrial ? 'free trial' : (paymentMethod === 'stripe' ? 'pending' : 'unpaid'),
+        },
+      };
+
+      const { error: emailError } = await supabase.functions.invoke('send-booking-notification', {
+        body: notificationPayload,
+      });
+
+      if (emailError) {
+        console.error('Error sending notification emails:', emailError);
+      }
+
       if (paymentMethod === 'stripe' && !isFreeTrial) {
         // Create Stripe checkout session
         const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-booking-checkout', {
           body: {
-            booking: bookingData,
-            availability_slot_id: selectedSlot.id
+            bookingId: createdBooking.id,
+            amount: calculateTotalPrice(),
           }
         });
 
         if (checkoutError) throw checkoutError;
         
         // Redirect to Stripe Checkout
-        window.open(checkoutData.url, '_blank');
+        if (checkoutData?.url) {
+          window.open(checkoutData.url, '_blank');
+          toast({
+            title: "Redirecting to payment",
+            description: "You'll be redirected to Stripe to complete your payment.",
+          });
+        }
       } else {
-        // Direct booking (free trial or pay later)
-        const { error: bookingError } = await supabase
-          .from('bookings')
-          .insert(bookingData);
-
-        if (bookingError) throw bookingError;
-
-        // Mark slot as booked
-        await supabase
-          .from('availability')
-          .update({ is_booked: true })
-          .eq('id', selectedSlot.id);
-
-        // Send confirmation email
-        await supabase.functions.invoke('send-booking-confirmation', {
-          body: {
-            booking: bookingData,
-            slot: selectedSlot
-          }
-        });
-
         toast({
           title: "Booking confirmed!",
           description: isFreeTrial 
