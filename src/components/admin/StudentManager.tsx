@@ -47,38 +47,34 @@ export function StudentManager() {
 
   const loadStudents = async () => {
     try {
-      // Get all student profiles with booking statistics
+      // Get all student profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          bookings!inner (
-            id,
-            price_cents,
-            status,
-            start_datetime,
-            payment_status
-          )
-        `)
+        .select('*')
         .eq('role', 'student');
 
       if (profilesError) throw profilesError;
 
-      // Get user emails from auth.users metadata
+      // Get user emails from auth.users and booking statistics for each student
       const studentsWithStats = await Promise.all(
         (profilesData || []).map(async (profile) => {
-          // Calculate booking statistics
-          const bookings = Array.isArray(profile.bookings) ? profile.bookings : [];
-          const completedBookings = bookings.filter(b => b.status === 'completed' && b.payment_status === 'paid');
+          // Get bookings for this student
+          const { data: bookings } = await supabase
+            .from('bookings')
+            .select('id, price_cents, status, start_datetime, payment_status')
+            .eq('user_id', profile.user_id);
+
+          const studentBookings = bookings || [];
+          const completedBookings = studentBookings.filter(b => b.status === 'completed' && b.payment_status === 'paid');
           const totalSpent = completedBookings.reduce((sum, booking) => sum + (booking.price_cents || 0), 0);
-          const lastBooking = bookings.length > 0 
-            ? bookings.sort((a, b) => new Date(b.start_datetime).getTime() - new Date(a.start_datetime).getTime())[0]
+          const lastBooking = studentBookings.length > 0 
+            ? studentBookings.sort((a, b) => new Date(b.start_datetime).getTime() - new Date(a.start_datetime).getTime())[0]
             : null;
 
           return {
             ...profile,
-            email: 'Not available', // Simplified since email column doesn't exist
-            bookings_count: bookings.length,
+            email: 'Not available', // Simplified since email column doesn't exist in profiles
+            bookings_count: studentBookings.length,
             total_spent: totalSpent,
             last_booking_date: lastBooking?.start_datetime,
           };
