@@ -68,6 +68,15 @@ export function BookingPage() {
                   <Mail className="h-5 w-5" />
                   Contact Me
                 </Button>
+                <div className="mt-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate('/auth')}
+                  >
+                    Already registered? Sign in
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
