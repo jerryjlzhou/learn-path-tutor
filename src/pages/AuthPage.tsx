@@ -168,26 +168,6 @@ export function AuthPage() {
     }
   };
 
-  const handleGoogleAuth = async () => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`,
-        },
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      toast({
-        title: "Google sign in failed",
-        description: error.message || "An error occurred with Google authentication.",
-        variant: "destructive",
-      });
-      setLoading(false);
-    }
-  };
 
   const yearLevels = [
     'Year 3', 'Year 4', 'Year 5', 'Year 6', 'Year 7', 'Year 8',
@@ -210,28 +190,6 @@ export function AuthPage() {
         </CardHeader>
         
         <CardContent className="space-y-6">
-          {/* Google Auth */}
-          <Button
-            onClick={handleGoogleAuth}
-            disabled={loading}
-            variant="outline"
-            className="w-full"
-          >
-            {loading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : null}
-            Continue with Google
-          </Button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-            </div>
-          </div>
-
           <form className="space-y-4" onSubmit={(e) => {
             e.preventDefault();
             mode === 'signup' ? handleSignUp() : handleSignIn();
