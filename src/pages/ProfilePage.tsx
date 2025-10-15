@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { AvailabilityManager } from '@/components/admin/AvailabilityManager';
-import { ForumManager } from '@/components/admin/ForumManager';
 import { StudentManager } from '@/components/admin/StudentManager';
 import { BookingManager } from '@/components/admin/BookingManager';
 import { ProfileSettings } from '@/components/admin/ProfileSettings';
@@ -154,10 +153,6 @@ export function ProfilePage() {
                   <BookOpen className="h-4 w-4 mr-2" />
                   Bookings
                 </TabsTrigger>
-                <TabsTrigger value="forums">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Messages
-                </TabsTrigger>
                 <TabsTrigger value="students">
                   <Users className="h-4 w-4 mr-2" />
                   Students
@@ -178,10 +173,6 @@ export function ProfilePage() {
 
               <TabsContent value="bookings">
                 <BookingManager />
-              </TabsContent>
-
-              <TabsContent value="forums">
-                <ForumManager />
               </TabsContent>
 
               <TabsContent value="students">
