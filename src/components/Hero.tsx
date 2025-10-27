@@ -21,7 +21,7 @@ export function Hero() {
           
           {/* Subtitle */}
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            4 years experience • Years 3–12 • Specialising in OC & Selective exams, High-School Maths & English
+            4 years experience • Years 3–12 • Specialising in HSC Maths and English, OC & Selective exams
             <br />
             <span className="text-lg">Online sessions from $60/hr • In-person sessions from $70/hr</span>
           </p>
