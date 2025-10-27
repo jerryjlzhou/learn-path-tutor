@@ -10,10 +10,10 @@ export function LandingPage() {
   return (
     <>
       <Hero />
+      <AboutSection />
       <TestimonialsCarousel />
       <HowItWorks />
       <ServicesSection />
-      <AboutSection />
       <CTASection />
       <Footer />
     </>

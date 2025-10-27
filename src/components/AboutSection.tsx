@@ -7,18 +7,18 @@ export function AboutSection() {
     {
       icon: GraduationCap,
       title: "Education",
-      details: ["North Sydney Boys High School", "Currently studying at UNSW"]
+      details: ["North Sydney Boys High School 2022", "• ATAR 97.10", "• E4 Maths extension 1", "• Band 6 English Advanced", "Bachelor of Computer Science (Artificial Intelligence) @ UNSW"]
     },
     {
       icon: Calendar,
       title: "Experience",
-      details: ["4+ years of tutoring", "Years 3-12 specialist"]
+      details: ["4+ years experience in private tutoring", "OC / Selective specialist for 4+ years at Alpha One Coaching College"]
     },
-    {
-      icon: Award,
-      title: "Expertise", 
-      details: ["OC & Selective entrance exams", "High-School Maths & English"]
-    },
+    // {
+    //   icon: Award,
+    //   title: "Expertise", 
+    //   details: ["OC & Selective entrance exams", "High-School Maths & English"]
+    // },
     {
       icon: MapPin,
       title: "Location",
@@ -32,7 +32,7 @@ export function AboutSection() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              About Your Tutor
+              About Me
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Experienced educator dedicated to helping students achieve their academic goals
@@ -73,7 +73,7 @@ export function AboutSection() {
                     <div className="w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
                       LP
                     </div>
-                    <h3 className="text-2xl font-bold mb-2">Your Dedicated Tutor</h3>
+                    <h3 className="text-2xl font-bold mb-2">Jerry Zhou</h3>
                     <div className="flex justify-center gap-2 mb-4">
                       <Badge>UNSW Student</Badge>
                       <Badge variant="secondary">4 Years Experience</Badge>
@@ -82,13 +82,17 @@ export function AboutSection() {
 
                   <div className="space-y-4 text-center">
                     <p className="text-muted-foreground">
-                      Passionate about education with a proven track record of helping students 
-                      excel in OC and selective school entrance exams.
+                      Hello! I'm Jerry :)
                     </p>
-                    <p className="text-muted-foreground">
-                      Specializing in Mathematics and English for Years 3-12, with personalized 
-                      teaching methods that adapt to each student's learning style.
+                    <p className='text-muted-foreground'>
+                      If you need to lock in for your next big exam, 
+                      or just want some extra help with school work, book in a free trial 
+                      now. 
                     </p>
+                    <p className="text-muted-foreground"> 
+                      With me, you get one-on-one attention and lessons that are actually interesting.
+                      Any question is welcome, no matter how big or small, I’ll help you figure it out!
+                    </p>  
                   </div>
 
                   {/* Success Stats */}
