@@ -6,27 +6,27 @@ export function ServicesSection() {
   const services = [
     {
       icon: Trophy,
-      title: "Selective Exam Prep",
-      description: "Comprehensive preparation for OC and selective school entrance exams with proven strategies and practice materials.",
-      badge: "Most Popular"
+      title: "Selective & OC Exam prep",
+      description: "Specialist help for Thinking Skills, Mathematical Reasoning, Reading and Writing for OC and Selective school entrance exams",
+      badge: "Popular"
     },
     {
       icon: Calculator,
       title: "High School Maths",
-      description: "From Year 7 to HSC Mathematics, covering all topics with clear explanations and problem-solving techniques.",
-      badge: ""
+      description: "From Year 7 to HSC Extension Maths, covering all topics with clear explanations and problem-solving techniques.",
+      badge: "Popular"
     },
     {
       icon: PenTool,
-      title: "English & Writing",
-      description: "Improve reading comprehension, essay writing, and creative writing skills for all year levels.",
+      title: "High School English",
+      description: "Comprehensive lessons for HSC English Advanced, essay writing and short-answer comprehension",
       badge: ""
     },
     {
       icon: BookOpen,
-      title: "Study Skills",
-      description: "Learn effective study techniques, time management, and exam strategies for academic success.",
-      badge: "New"
+      title: "Homework help",
+      description: "Free and unlimited homework. Just send a question and get a detailed video solution in 24 hours",
+      badge: ""
     }
   ];
 
