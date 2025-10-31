@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -341,9 +341,11 @@ export function AuthPage() {
 
           {mode === 'signin' && (
             <div className="text-center">
-              <Button variant="link" className="text-sm text-muted-foreground">
-                Forgot your password?
-              </Button>
+              <Link to="/forgot-password">
+                <Button variant="link" className="text-sm text-muted-foreground">
+                  Forgot your password?
+                </Button>
+              </Link>
             </div>
           )}
         </CardContent>
