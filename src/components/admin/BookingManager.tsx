@@ -6,6 +6,32 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { 
   BookOpen, 
   Search, 
   Calendar,
@@ -13,7 +39,10 @@ import {
   MapPin,
   DollarSign,
   User,
-  Filter
+  Filter,
+  MoreVertical,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -46,6 +75,10 @@ export function BookingManager() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [modeFilter, setModeFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  const [deletingBooking, setDeletingBooking] = useState<Booking | null>(null);
+  const [editStatus, setEditStatus] = useState<string>('');
+  const [editPaymentStatus, setEditPaymentStatus] = useState<string>('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -137,6 +170,71 @@ export function BookingManager() {
       toast({
         title: "Error updating booking",
         description: "There was a problem updating the booking status.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditBooking = (booking: Booking) => {
+    setEditingBooking(booking);
+    setEditStatus(booking.status);
+    setEditPaymentStatus(booking.payment_status);
+  };
+
+  const saveBookingEdit = async () => {
+    if (!editingBooking) return;
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ 
+          status: editStatus,
+          payment_status: editPaymentStatus
+        })
+        .eq('id', editingBooking.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Booking updated",
+        description: "Booking has been updated successfully.",
+      });
+
+      setEditingBooking(null);
+      loadBookings();
+    } catch (error) {
+      console.error('Error updating booking:', error);
+      toast({
+        title: "Error updating booking",
+        description: "There was a problem updating the booking.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteBooking = async () => {
+    if (!deletingBooking) return;
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', deletingBooking.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Booking deleted",
+        description: "The booking has been deleted successfully.",
+      });
+
+      setDeletingBooking(null);
+      loadBookings();
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+      toast({
+        title: "Error deleting booking",
+        description: "There was a problem deleting the booking.",
         variant: "destructive",
       });
     }
@@ -336,6 +434,30 @@ export function BookingManager() {
                               Mark Complete
                             </Button>
                           )}
+
+                          {/* Edit/Delete Menu */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleEditBooking(booking)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Booking
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => setDeletingBooking(booking)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete Booking
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                     </div>
@@ -346,6 +468,79 @@ export function BookingManager() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Booking Dialog */}
+      <Dialog open={!!editingBooking} onOpenChange={(open) => !open && setEditingBooking(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Booking</DialogTitle>
+            <DialogDescription>
+              Update the booking status and payment status for {editingBooking?.profiles.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="status">Booking Status</Label>
+              <Select value={editStatus} onValueChange={setEditStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="payment_status">Payment Status</Label>
+              <Select value={editPaymentStatus} onValueChange={setEditPaymentStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unpaid">Unpaid</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="refunded">Refunded</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setEditingBooking(null)}>
+              Cancel
+            </Button>
+            <Button onClick={saveBookingEdit}>
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingBooking} onOpenChange={(open) => !open && setDeletingBooking(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the booking for {deletingBooking?.profiles.full_name} on{' '}
+              {deletingBooking && new Date(deletingBooking.start_datetime).toLocaleDateString()}.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeletingBooking(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteBooking} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
