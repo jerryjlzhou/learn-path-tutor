@@ -69,7 +69,7 @@ export function Navigation() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
             T
           </div>
-          <span className="text-xl font-bold">Jerry's Tutoring</span>
+          <span className="text-xl font-bold">Jenius Tutoring</span>
         </Link>
 
         {/* Desktop Navigation */}

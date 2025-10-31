@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -54,7 +55,9 @@ export function ForgotPasswordPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/20 p-4">
+      <>
+        <Navigation />
+        <div className="min-h-screen flex items-center justify-center bg-muted/20 p-4">
         <Card className="w-full max-w-md shadow-medium">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
@@ -80,12 +83,15 @@ export function ForgotPasswordPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/20 p-4">
+    <>
+      <Navigation />
+      <div className="min-h-screen flex items-center justify-center bg-muted/20 p-4">
       <Card className="w-full max-w-md shadow-medium">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Recover Password</CardTitle>
@@ -127,6 +133,7 @@ export function ForgotPasswordPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }
