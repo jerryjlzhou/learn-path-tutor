@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar as CalendarIcon, Clock, Plus, Trash2, Edit, MapPin, Monitor } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { TimeSelect } from '@/components/ui/time-select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -274,26 +275,20 @@ export function AvailabilityManager() {
             </div>
 
             {/* Start Time */}
-            <div className="space-y-2">
-              <Label htmlFor="startTime">Start Time</Label>
-              <Input
-                id="startTime"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-              />
-            </div>
+            <TimeSelect
+              label="Start Time"
+              value={startTime}
+              onChange={setStartTime}
+              placeholder="Select start time"
+            />
 
             {/* End Time */}
-            <div className="space-y-2">
-              <Label htmlFor="endTime">End Time</Label>
-              <Input
-                id="endTime"
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-              />
-            </div>
+            <TimeSelect
+              label="End Time"
+              value={endTime}
+              onChange={setEndTime}
+              placeholder="Select end time"
+            />
 
             {/* Session Mode */}
             <div className="space-y-2">
