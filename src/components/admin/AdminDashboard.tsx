@@ -8,8 +8,7 @@ import {
   DollarSign, 
   BookOpen,
   Clock,
-  TrendingUp,
-  MessageSquare
+  TrendingUp
 } from 'lucide-react';
 import { formatPrice } from '@/lib/pricing';
 
@@ -18,7 +17,6 @@ interface DashboardStats {
   totalBookings: number;
   upcomingBookings: number;
   totalRevenue: number;
-  pendingMessages: number;
   completedSessions: number;
 }
 
@@ -28,7 +26,6 @@ export function AdminDashboard() {
     totalBookings: 0,
     upcomingBookings: 0,
     totalRevenue: 0,
-    pendingMessages: 0,
     completedSessions: 0,
   });
   const [recentBookings, setRecentBookings] = useState<any[]>([]);
@@ -73,12 +70,6 @@ export function AdminDashboard() {
 
       const totalRevenue = completedBookings?.reduce((sum, booking) => sum + (booking.price_cents || 0), 0) || 0;
 
-      // Get pending messages count
-      const { count: pendingMessages } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_read', false);
-
       // Get recent bookings
       const { data: recentBookingsData } = await supabase
         .from('bookings')
@@ -94,7 +85,6 @@ export function AdminDashboard() {
         totalBookings: totalBookings || 0,
         upcomingBookings: upcomingBookings || 0,
         totalRevenue,
-        pendingMessages: pendingMessages || 0,
         completedSessions: completedSessions || 0,
       });
 
@@ -136,7 +126,7 @@ export function AdminDashboard() {
   return (
     <div className="space-y-8">
       {/* Stats Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Students</CardTitle>
@@ -198,19 +188,6 @@ export function AdminDashboard() {
             <div className="text-2xl font-bold">{stats.completedSessions}</div>
             <p className="text-xs text-muted-foreground">
               Successfully completed
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Messages</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingMessages}</div>
-            <p className="text-xs text-muted-foreground">
-              Unread messages
             </p>
           </CardContent>
         </Card>

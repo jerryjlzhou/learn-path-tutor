@@ -12,7 +12,6 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   User, 
   Calendar, 
-  MessageSquare, 
   Users, 
   BookOpen, 
   Settings,
@@ -26,7 +25,6 @@ import { AvailabilityManager } from '@/components/admin/AvailabilityManager';
 import { StudentManager } from '@/components/admin/StudentManager';
 import { BookingManager } from '@/components/admin/BookingManager';
 import { ProfileSettings } from '@/components/admin/ProfileSettings';
-import { StudentMessages } from '@/components/student/StudentMessages';
 
 export function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -186,7 +184,7 @@ export function ProfilePage() {
           ) : (
             /* Student Profile */
             <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="overview">
                   <User className="h-4 w-4 mr-2" />
                   Overview
@@ -194,10 +192,6 @@ export function ProfilePage() {
                 <TabsTrigger value="bookings">
                   <BookOpen className="h-4 w-4 mr-2" />
                   My Bookings
-                </TabsTrigger>
-                <TabsTrigger value="messages">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Messages
                 </TabsTrigger>
                 <TabsTrigger value="settings">
                   <Settings className="h-4 w-4 mr-2" />
@@ -243,10 +237,6 @@ export function ProfilePage() {
                     </p>
                   </CardContent>
                 </Card>
-              </TabsContent>
-
-              <TabsContent value="messages">
-                <StudentMessages />
               </TabsContent>
 
               <TabsContent value="settings">

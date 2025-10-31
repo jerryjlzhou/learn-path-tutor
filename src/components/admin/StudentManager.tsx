@@ -10,7 +10,6 @@ import {
   Mail, 
   Calendar, 
   BookOpen,
-  MessageSquare,
   School
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -229,10 +228,6 @@ export function StudentManager() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm">
-                            <MessageSquare className="h-4 w-4 mr-2" />
-                            Message
-                          </Button>
                           <Button variant="outline" size="sm">
                             <BookOpen className="h-4 w-4 mr-2" />
                             View Bookings
