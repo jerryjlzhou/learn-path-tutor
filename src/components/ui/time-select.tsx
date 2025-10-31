@@ -17,9 +17,9 @@ export function TimeSelect({
   value,
   onChange,
   placeholder = 'Select time',
-  startHour = 10,
+  startHour = 8,
   intervalMinutes = 30,
-  totalSlots = 29,
+  totalSlots = 31,
 }: TimeSelectProps) {
   const timeOptions = generateTimeOptions(startHour, intervalMinutes, totalSlots);
   
@@ -37,7 +37,7 @@ export function TimeSelect({
         <SelectTrigger>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-background">
           {timeOptions.map((time, index) => (
             <SelectItem key={index} value={time}>
               {time}
