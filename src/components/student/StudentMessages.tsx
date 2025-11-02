@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -38,11 +38,7 @@ export function StudentMessages() {
   const [sendingMessage, setSendingMessage] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadThreads();
-  }, []);
-
-  const loadThreads = async () => {
+  const loadThreads = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -101,7 +97,11 @@ export function StudentMessages() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadThreads();
+  }, [loadThreads]);
 
   const createNewThread = async () => {
     try {

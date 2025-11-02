@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,11 +41,7 @@ export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFor
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadAvailableSlots();
-  }, []);
-
-  const loadAvailableSlots = async () => {
+  const loadAvailableSlots = useCallback(async () => {
     try {
       const today = format(new Date(), 'yyyy-MM-dd');
       const { data, error } = await supabase
@@ -72,7 +68,11 @@ export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFor
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadAvailableSlots();
+  }, [loadAvailableSlots]);
 
   const calculateTotalPrice = () => {
     if (isFreeTrial || !selectedSlot) return 0;
