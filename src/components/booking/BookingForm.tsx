@@ -270,7 +270,7 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
                       {slots.map((slot) => (
                         <Button
                           key={slot.id}
-                          variant={selectedSlot?.id === slot.id ? "default" : "outline"}
+                          variant={selectedSlot?.id === slot.id ? "defaultOutline" : "accentOutline"}
                           className="p-4 h-auto justify-start"
                           onClick={() => setSelectedSlot(slot)}
                         >
