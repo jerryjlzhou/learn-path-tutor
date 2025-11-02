@@ -1,11 +1,28 @@
+import { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/Layout';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 export function PricingPage() {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
+  useEffect(() => {
+    // Check if user is signed in
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsSignedIn(!!user);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsSignedIn(!!session?.user);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
   const pricingPlans = [
     {
       name: 'Online Sessions',
@@ -13,16 +30,16 @@ export function PricingPage() {
       period: 'per hour',
       description: 'Perfect for flexible learning from anywhere',
       features: [
-        '1-on-1 personalized tutoring',
-        'Interactive online whiteboard',
-        'Screen sharing capabilities',
+        '1-on-1 personalized tutoring via Zoom with Face camera',
+        'iPad screen share for worked explanations',
         'Session recordings available',
-        'Flexible scheduling',
-        'All subjects covered',
-        'Progress tracking',
-        'Homework support'
+        'Custom HSC / Selective / OC Learning material',
+        'Comprehensive resources and past papers available',
+        'Unlimited Homework support between lessons',
+        'Flexible scheduling that suits you',
+        'Progress tracking and weekly parent feedback',
       ],
-      popular: false,
+      popular: true,
       mode: 'online'
     },
     {
@@ -31,14 +48,14 @@ export function PricingPage() {
       period: 'per hour',
       description: 'Face-to-face learning for maximum engagement',
       features: [
-        '1-on-1 personalized tutoring',
-        'Physical learning materials',
-        'Hands-on problem solving',
-        'Direct interaction and feedback',
-        'Local area coverage',
-        'All subjects covered',
-        'Progress tracking',
-        'Homework support'
+        '1-on-1 face to face learning',
+        'Your choice of location in Sydney (Home / Library, etc)',
+        'Large physical whiteboard provided for interactive working',
+        'Custom HSC / Selective / OC Learning material',
+        'Comprehensive resources and past papers available',
+        'Unlimited Homework support between lessons',
+        'Flexible scheduling that suits you',
+        'Progress tracking and weekly parent feedback',
       ],
       popular: true,
       mode: 'in-person'
@@ -71,7 +88,7 @@ export function PricingPage() {
               >
                 {plan.popular && (
                   <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 px-4 py-1">
-                    Most Popular
+                    Popular
                   </Badge>
                 )}
                 
@@ -103,11 +120,13 @@ export function PricingPage() {
                         Book {plan.name}
                       </Button>
                     </Link>
-                    <Link to={`/booking?trial=true&mode=${plan.mode}`}>
-                      <Button variant="ghost" className="w-full">
-                        Try Free Session
-                      </Button>
-                    </Link>
+                    {!isSignedIn && (
+                      <Link to={`/booking?trial=true&mode=${plan.mode}`}>
+                        <Button variant="ghost" className="w-full mt-2">
+                          Try Free Session
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -125,7 +144,7 @@ export function PricingPage() {
             <Card className="p-6">
               <h3 className="font-semibold mb-2">Flexible Cancellation</h3>
               <p className="text-sm text-muted-foreground">
-                Cancel or reschedule sessions up to 24 hours in advance at no charge
+                Cancel or reschedule sessions anytime with no charge
               </p>
             </Card>
             <Card className="p-6">
@@ -164,8 +183,8 @@ export function PricingPage() {
               <Card className="p-6">
                 <h3 className="font-semibold mb-3">What subjects do you cover?</h3>
                 <p className="text-sm text-muted-foreground">
-                  We specialize in OC & Selective exam preparation, High School Mathematics, and English. 
-                  We cover years 3-12 and can adapt to specific curriculum requirements.
+                  I specialize in OC & Selective exam preparation, High School Mathematics, and English. 
+                  I cover years 3-12 and can adapt to specific curriculum requirements.
                 </p>
               </Card>
             </div>

@@ -26,7 +26,7 @@ export function CTASection() {
                     Experience our personalized teaching approach with a complimentary 60-minute session
                   </p>
                 </div>
-                <Link to="/booking?trial=true">
+                <Link to="/booking">
                   <Button size="lg" className="w-full">
                     Book Free Trial
                     <ArrowRight className="h-4 w-4 ml-2" />

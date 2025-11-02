@@ -31,6 +31,11 @@ export function AuthPage() {
   const [yearLevel, setYearLevel] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
 
+  // Update mode when URL parameter changes
+  useEffect(() => {
+    setMode(searchParams.get('mode') === 'signup' ? 'signup' : 'signin');
+  }, [searchParams]);
+
   // Check if user is already authenticated
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -147,9 +152,7 @@ export function AuthPage() {
           .eq('user_id', user.id)
           .single();
 
-        // Redirect students to profile page, admins to home
-        const redirectPath = profile?.role === 'student' ? '/profile' : '/';
-        navigate(redirectPath);
+        navigate('/profile');
       } else {
         navigate('/');
       }
@@ -186,8 +189,8 @@ export function AuthPage() {
           </CardTitle>
           <CardDescription>
             {mode === 'signup' 
-              ? 'Join LearnPath to start your learning journey'
-              : 'Welcome back to LearnPath'
+              ? 'Ready to be a Jenius? Join now!'
+              : 'It\'s nice to see you again :)'
             }
           </CardDescription>
         </CardHeader>

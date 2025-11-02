@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import { Calendar as CalendarIcon, Clock, MapPin, Monitor, CreditCard, Banknote, Gift } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, Monitor, CreditCard, Banknote } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,11 +27,10 @@ interface AvailabilitySlot {
 }
 
 interface BookingFormProps {
-  isFreeTrial?: boolean;
   preselectedMode?: SessionMode;
 }
 
-export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFormProps) {
+export function BookingForm({ preselectedMode }: BookingFormProps) {
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
   const [duration, setDuration] = useState(60); // minutes
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'later'>('stripe');
@@ -75,7 +74,7 @@ export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFor
   }, [loadAvailableSlots]);
 
   const calculateTotalPrice = () => {
-    if (isFreeTrial || !selectedSlot) return 0;
+    if (!selectedSlot) return 0;
     return calculateSessionPrice(selectedSlot.mode, duration);
   };
 
@@ -113,10 +112,10 @@ export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFor
         mode: selectedSlot.mode,
         status: 'pending',
         price_cents: calculateTotalPrice(),
-        payment_status: isFreeTrial ? 'paid' : (paymentMethod === 'stripe' ? 'pending' : 'unpaid'),
+        payment_status: paymentMethod === 'stripe' ? 'pending' : 'unpaid',
         location: selectedSlot.location || null,
         notes: notes || null,
-        is_free_trial: isFreeTrial
+        is_free_trial: false
       };
 
       // Create booking first
@@ -158,7 +157,7 @@ export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFor
           mode: selectedSlot.mode,
           location: selectedSlot.location,
           price: calculateTotalPrice(),
-          paymentStatus: isFreeTrial ? 'free trial' : (paymentMethod === 'stripe' ? 'pending' : 'unpaid'),
+          paymentStatus: paymentMethod === 'stripe' ? 'pending' : 'unpaid',
         },
       };
 
@@ -170,7 +169,7 @@ export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFor
         console.error('Error sending notification emails:', emailError);
       }
 
-      if (paymentMethod === 'stripe' && !isFreeTrial) {
+      if (paymentMethod === 'stripe') {
         // Create Stripe checkout session
         const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-booking-checkout', {
           body: {
@@ -192,9 +191,7 @@ export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFor
       } else {
         toast({
           title: "Booking confirmed!",
-          description: isFreeTrial 
-            ? "Your free trial session has been booked successfully."
-            : "Your lesson has been booked. Payment details will be sent separately.",
+          description: "Your lesson has been booked. Payment details will be sent separately.",
         });
 
         // Reset form
@@ -324,21 +321,19 @@ export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFor
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Duration Selection */}
-            {!isFreeTrial && (
-              <div className="space-y-3">
-                <Label>Session Duration</Label>
-                <Select value={duration.toString()} onValueChange={(value) => setDuration(parseInt(value))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="60">1 hour (60 minutes)</SelectItem>
-                    <SelectItem value="90">1.5 hours (90 minutes)</SelectItem>
-                    <SelectItem value="120">2 hours (120 minutes)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="space-y-3">
+              <Label>Session Duration</Label>
+              <Select value={duration.toString()} onValueChange={(value) => setDuration(parseInt(value))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="60">1 hour (60 minutes)</SelectItem>
+                  <SelectItem value="90">1.5 hours (90 minutes)</SelectItem>
+                  <SelectItem value="120">2 hours (120 minutes)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Notes */}
             <div className="space-y-2">
@@ -353,30 +348,28 @@ export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFor
             </div>
 
             {/* Payment Method */}
-            {!isFreeTrial && (
-              <>
-                <Separator />
-                <div className="space-y-3">
-                  <Label>Payment Method</Label>
-                  <RadioGroup value={paymentMethod} onValueChange={(value: 'stripe' | 'later') => setPaymentMethod(value)}>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                      <RadioGroupItem value="stripe" id="stripe" />
-                      <Label htmlFor="stripe" className="flex items-center gap-2 cursor-pointer">
-                        <CreditCard className="h-4 w-4" />
-                        Pay now with card (Stripe)
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                      <RadioGroupItem value="later" id="later" />
-                      <Label htmlFor="later" className="flex items-center gap-2 cursor-pointer">
-                        <Banknote className="h-4 w-4" />
-                        Pay later (Cash/Bank Transfer)
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </>
-            )}
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <Label>Payment Method</Label>
+                <RadioGroup value={paymentMethod} onValueChange={(value: 'stripe' | 'later') => setPaymentMethod(value)}>
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                    <RadioGroupItem value="stripe" id="stripe" />
+                    <Label htmlFor="stripe" className="flex items-center gap-2 cursor-pointer">
+                      <CreditCard className="h-4 w-4" />
+                      Pay now with card (Stripe)
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                    <RadioGroupItem value="later" id="later" />
+                    <Label htmlFor="later" className="flex items-center gap-2 cursor-pointer">
+                      <Banknote className="h-4 w-4" />
+                      Pay later (Cash/Bank Transfer)
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </>
 
             {/* Price Summary */}
             <Separator />
@@ -391,13 +384,7 @@ export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFor
               </div>
               <div className="flex justify-between items-center font-semibold text-lg">
                 <span>Total:</span>
-                <span>
-                  {isFreeTrial ? (
-                    <Badge className="bg-green-500">FREE</Badge>
-                  ) : (
-                    `${formatPrice(calculateTotalPrice())} AUD`
-                  )}
-                </span>
+                <span>{formatPrice(calculateTotalPrice())} AUD</span>
               </div>
             </div>
 
@@ -410,11 +397,6 @@ export function BookingForm({ isFreeTrial = false, preselectedMode }: BookingFor
             >
               {submitting ? (
                 "Processing..."
-              ) : isFreeTrial ? (
-                <>
-                  <Gift className="h-4 w-4 mr-2" />
-                  Book Free Trial
-                </>
               ) : paymentMethod === 'stripe' ? (
                 <>
                   <CreditCard className="h-4 w-4 mr-2" />
