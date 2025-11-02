@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,19 +27,19 @@ import { StudentManager } from '@/components/admin/StudentManager';
 import { BookingManager } from '@/components/admin/BookingManager';
 import { ReviewsManager } from '@/components/admin/ReviewsManager';
 import { ProfileSettings } from '@/components/admin/ProfileSettings';
+import { Tables } from '@/integrations/supabase/types';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+
+type Profile = Tables<'profiles'>;
 
 export function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser>(null);
+  const [profile, setProfile] = useState<Profile>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    checkUser();
-  }, []);
-
-  const checkUser = async () => {
+  const checkUser = useCallback(async () => {
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
@@ -72,7 +72,11 @@ export function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate, toast]);
+
+  useEffect(() => {
+    checkUser();
+  }, [checkUser]);
 
   if (loading) {
     return (
