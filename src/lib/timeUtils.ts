@@ -57,3 +57,88 @@ export function generateTimeOptions(
     return `${hours12}:${String(minutes).padStart(2, '0')} ${period}`;
   });
 }
+
+/**
+ * Format a time string (HH:MM:SS or HH:MM) to 12-hour format with am/pm
+ * @param timeString - Time string in 24-hour format (e.g., "14:30:00" or "14:30")
+ * @returns Formatted time string (e.g., "2:30 pm")
+ */
+export function formatTime(timeString: string): string {
+  const [hours, minutes] = timeString.split(':').map(Number);
+  const period = hours >= 12 ? 'pm' : 'am';
+  const displayHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
+
+/**
+ * Generate time options in specified minute increments for full 24-hour day
+ * @param incrementMinutes - Minutes between each time option (default: 15)
+ * @returns Array of time strings in HH:MM:SS format
+ */
+export function generateFullDayTimeOptions(incrementMinutes: number = 15): string[] {
+  const times: string[] = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += incrementMinutes) {
+      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
+      times.push(timeString);
+    }
+  }
+  return times;
+}
+
+/**
+ * Convert time string to total minutes since midnight
+ * @param timeString - Time string in HH:MM:SS or HH:MM format
+ * @returns Total minutes since midnight
+ */
+export function timeToMinutes(timeString: string): number {
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+/**
+ * Convert minutes since midnight to time string
+ * @param minutes - Total minutes since midnight
+ * @returns Time string in HH:MM:SS format
+ */
+export function minutesToTimeString(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:00`;
+}
+
+/**
+ * Calculate duration in minutes between two times
+ * @param startTime - Start time string
+ * @param endTime - End time string
+ * @returns Duration in minutes
+ */
+export function calculateDuration(startTime: string, endTime: string): number {
+  if (!startTime || !endTime) return 0;
+  return timeToMinutes(endTime) - timeToMinutes(startTime);
+}
+
+/**
+ * Calculate end time given a start time and duration
+ * @param startTime - Start time string
+ * @param durationMinutes - Duration in minutes
+ * @param maxEndTime - Optional maximum end time (slot boundary)
+ * @returns End time string in HH:MM:SS format
+ */
+export function calculateEndTime(
+  startTime: string, 
+  durationMinutes: number, 
+  maxEndTime?: string
+): string {
+  const startMinutes = timeToMinutes(startTime);
+  const endMinutes = startMinutes + durationMinutes;
+  
+  // If maxEndTime is provided, cap the end time
+  if (maxEndTime) {
+    const maxEndMinutes = timeToMinutes(maxEndTime);
+    const actualEndMinutes = Math.min(endMinutes, maxEndMinutes);
+    return minutesToTimeString(actualEndMinutes);
+  }
+  
+  return minutesToTimeString(endMinutes);
+}
