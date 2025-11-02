@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -81,15 +81,7 @@ export function BookingManager() {
   const [editPaymentStatus, setEditPaymentStatus] = useState<string>('');
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadBookings();
-  }, []);
-
-  useEffect(() => {
-    filterBookings();
-  }, [bookings, searchTerm, statusFilter, modeFilter]);
-
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('bookings')
@@ -125,9 +117,9 @@ export function BookingManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const filterBookings = () => {
+  const filterBookings = useCallback(() => {
     let filtered = [...bookings];
 
     // Search filter
@@ -148,7 +140,15 @@ export function BookingManager() {
     }
 
     setFilteredBookings(filtered);
-  };
+  }, [bookings, searchTerm, statusFilter, modeFilter]);
+
+  useEffect(() => {
+    loadBookings();
+  }, [loadBookings]);
+
+  useEffect(() => {
+    filterBookings();
+  }, [filterBookings]);
 
   const updateBookingStatus = async (bookingId: string, newStatus: string) => {
     try {

@@ -115,7 +115,7 @@ export function AuthPage() {
         title: "Account created successfully!",
         description: "Please check your email to verify your account.",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Sign up failed",
         description: error.message || "An error occurred during sign up.",
@@ -158,7 +158,7 @@ export function AuthPage() {
         title: "Welcome back!",
         description: "You have been signed in successfully.",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Sign in failed",
         description: error.message || "An error occurred during sign in.",
@@ -195,7 +195,11 @@ export function AuthPage() {
         <CardContent className="space-y-6">
           <form className="space-y-4" onSubmit={(e) => {
             e.preventDefault();
-            mode === 'signup' ? handleSignUp() : handleSignIn();
+            if (mode === 'signup') {
+              handleSignUp();
+            } else {
+              handleSignIn();
+            }
           }}>
             {mode === 'signup' && (
               <div className="space-y-2">
@@ -241,7 +245,7 @@ export function AuthPage() {
                     <SelectTrigger>
                       <SelectValue placeholder="Select your year level" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className='bg-background'>
                       {yearLevels.map((year) => (
                         <SelectItem key={year} value={year}>
                           {year}

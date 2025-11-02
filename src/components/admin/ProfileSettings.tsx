@@ -8,9 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Settings, Save, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Tables } from '@/integrations/supabase/types';
+
+type Profile = Tables<'profiles'>;
 
 interface ProfileSettingsProps {
-  profile: any;
+  profile: Profile;
   onUpdate: () => void;
 }
 
@@ -19,7 +22,6 @@ export function ProfileSettings({ profile, onUpdate }: ProfileSettingsProps) {
     full_name: profile.full_name || '',
     school: profile.school || '',
     year_level: profile.year_level || '',
-    bio: profile.bio || '',
   });
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -128,18 +130,6 @@ export function ProfileSettings({ profile, onUpdate }: ProfileSettingsProps) {
                 className="bg-muted"
               />
             </div>
-          </div>
-
-          {/* Bio Section */}
-          <div className="space-y-2">
-            <Label htmlFor="bio">Biography</Label>
-            <Textarea
-              id="bio"
-              value={formData.bio}
-              onChange={(e) => handleInputChange('bio', e.target.value)}
-              placeholder="Tell us about yourself..."
-              className="min-h-[100px]"
-            />
           </div>
 
           {/* Account Information */}

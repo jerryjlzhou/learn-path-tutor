@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,11 +35,7 @@ export function AvailabilityManager() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadAvailability();
-  }, []);
-
-  const loadAvailability = async () => {
+  const loadAvailability = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('availability')
@@ -63,7 +59,11 @@ export function AvailabilityManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadAvailability();
+  }, [loadAvailability]);
 
   const handleAddSlot = async () => {
     if (!selectedDate || !startTime || !endTime) {
