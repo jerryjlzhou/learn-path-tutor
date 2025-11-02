@@ -16,16 +16,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
+import { Tables } from '@/integrations/supabase/types';
 
-interface Testimonial {
-  id: string;
-  rating: number;
-  comment: string;
-  student: string;
-  school: string;
-  is_approved: boolean;
-  created_at: string;
-}
+type Testimonial = Tables<'testimonials'>;
 
 export function ReviewsManager() {
   const [reviews, setReviews] = useState<Testimonial[]>([]);
@@ -37,7 +30,7 @@ export function ReviewsManager() {
     try {
       console.log('Loading reviews from testimonials table...');
       const { data, error } = await supabase
-        .from('testimonials' as any)
+        .from('testimonials')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -45,8 +38,8 @@ export function ReviewsManager() {
       console.log('Reviews error:', error);
 
       if (error) throw error;
-      setReviews((data as any) || []);
-      console.log('Reviews state set:', (data as any) || []);
+      setReviews((data) || []);
+      console.log('Reviews state set:', (data) || []);
     } catch (error) {
       console.error('Error loading reviews:', error);
       toast({
@@ -66,7 +59,7 @@ export function ReviewsManager() {
   const handleApprove = async (reviewId: string) => {
     try {
       const { error } = await supabase
-        .from('testimonials' as any)
+        .from('testimonials')
         .update({ is_approved: true })
         .eq('id', reviewId);
 
@@ -91,7 +84,7 @@ export function ReviewsManager() {
   const handleUnapprove = async (reviewId: string) => {
     try {
       const { error } = await supabase
-        .from('testimonials' as any)
+        .from('testimonials')
         .update({ is_approved: false })
         .eq('id', reviewId);
 
@@ -118,7 +111,7 @@ export function ReviewsManager() {
 
     try {
       const { error } = await supabase
-        .from('testimonials' as any)
+        .from('testimonials')
         .delete()
         .eq('id', deletingReview.id);
 

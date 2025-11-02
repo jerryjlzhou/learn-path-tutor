@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,15 +36,7 @@ export function StudentManager() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadStudents();
-  }, []);
-
-  useEffect(() => {
-    filterStudents();
-  }, [students, searchTerm]);
-
-  const loadStudents = async () => {
+  const loadStudents = useCallback(async () => {
     try {
       // Get all student profiles
       const { data: profilesData, error: profilesError } = await supabase
@@ -91,9 +83,9 @@ export function StudentManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const filterStudents = () => {
+  const filterStudents = useCallback(() => {
     if (!searchTerm.trim()) {
       setFilteredStudents(students);
       return;
@@ -106,7 +98,15 @@ export function StudentManager() {
     );
 
     setFilteredStudents(filtered);
-  };
+  }, [students, searchTerm]);
+
+  useEffect(() => {
+    loadStudents();
+  }, [loadStudents]);
+
+  useEffect(() => {
+    filterStudents();
+  }, [filterStudents]);
 
   const formatPrice = (priceInCents: number): string => {
     return `$${(priceInCents / 100).toFixed(2)}`;
