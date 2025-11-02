@@ -3,14 +3,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
 
-interface Testimonial {
-  id: string;
-  rating: number;
-  comment: string;
-  student: string;
-  school: string;
-}
+type Testimonial = Tables<'testimonials'>;
 
 export function TestimonialsCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -38,20 +33,24 @@ export function TestimonialsCarousel() {
         rating: 5,
         comment: "Helped me get into selective school!",
         student: "Mia",
-        school: "Year 6"
+        school: "Year 6",
+        created_at: new Date().toISOString(),
+        is_approved: true,
       },
       {
         id: '2',
         rating: 5,
         comment: "Amazing tutor, really patient and explains everything clearly.",
         student: "James",
-        school: "Year 10"
+        school: "Year 10",
+        created_at: new Date().toISOString(),
+        is_approved: true,
       },
     ];
 
     try {
       const { data, error } = await supabase
-        .from('testimonials' as any)
+        .from('testimonials')
         .select('*')
         .eq('is_approved', true)
         .order('created_at', { ascending: false });
@@ -59,12 +58,10 @@ export function TestimonialsCarousel() {
       if (error) throw error;
       
       // Use hardcoded testimonials if no approved reviews exist
-      const loadedTestimonials = (data as any) || [];
-      setTestimonials(loadedTestimonials.length > 0 ? loadedTestimonials : hardcodedTestimonials);
+      const loadedTestimonials: Testimonial[] = data ?? [];
+      setTestimonials(loadedTestimonials);
     } catch (error) {
       console.error('Error loading testimonials:', error);
-      // Fallback to hardcoded testimonials if there's an error
-      setTestimonials(hardcodedTestimonials);
     } finally {
       setLoading(false);
     }
