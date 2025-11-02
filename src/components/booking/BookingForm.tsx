@@ -32,7 +32,8 @@ interface BookingFormProps {
 
 export function BookingForm({ preselectedMode }: BookingFormProps) {
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
-  const [duration, setDuration] = useState(60); // minutes
+  const [customStartTime, setCustomStartTime] = useState<string>('');
+  const [customEndTime, setCustomEndTime] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'later'>('stripe');
   const [notes, setNotes] = useState('');
   const [availableSlots, setAvailableSlots] = useState<AvailabilitySlot[]>([]);
@@ -73,10 +74,104 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
     loadAvailableSlots();
   }, [loadAvailableSlots]);
 
+  const formatTime = (timeString: string) => {
+    // Parse time string (e.g., "14:30:00" or "14:30")
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const period = hours >= 12 ? 'pm' : 'am';
+    const displayHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
+
+  // Generate time options in 30-minute increments
+  const generateTimeOptions = () => {
+    const times: string[] = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
+        times.push(timeString);
+      }
+    }
+    return times;
+  };
+
+  // Convert time string to minutes for comparison
+  const timeToMinutes = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  // Calculate duration in minutes
+  const calculateDuration = () => {
+    if (!customStartTime || !customEndTime) return 0;
+    return timeToMinutes(customEndTime) - timeToMinutes(customStartTime);
+  };
+
+  // Validate time selection
+  const validateTimes = () => {
+    if (!selectedSlot || !customStartTime || !customEndTime) return false;
+
+    const slotStart = timeToMinutes(selectedSlot.start_time);
+    const slotEnd = timeToMinutes(selectedSlot.end_time);
+    const selectedStart = timeToMinutes(customStartTime);
+    const selectedEnd = timeToMinutes(customEndTime);
+
+    // Check if start time is within slot bounds
+    if (selectedStart < slotStart) {
+      toast({
+        title: "Invalid start time",
+        description: `Start time must be at or after ${formatTime(selectedSlot.start_time)}`,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check if end time is within slot bounds
+    if (selectedEnd > slotEnd) {
+      toast({
+        title: "Invalid end time",
+        description: `End time must be at or before ${formatTime(selectedSlot.end_time)}`,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check if end time is after start time
+    if (selectedEnd <= selectedStart) {
+      toast({
+        title: "Invalid time range",
+        description: "End time must be after start time",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check minimum duration (1 hour = 60 minutes)
+    const duration = selectedEnd - selectedStart;
+    if (duration < 60) {
+      toast({
+        title: "Minimum duration not met",
+        description: "Lesson must be at least 1 hour long",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const calculateTotalPrice = () => {
-    if (!selectedSlot) return 0;
+    if (!selectedSlot || !customStartTime || !customEndTime) return 0;
+    const duration = calculateDuration();
     return calculateSessionPrice(selectedSlot.mode, duration);
   };
+
+  // Reset custom times when slot changes
+  useEffect(() => {
+    if (selectedSlot) {
+      setCustomStartTime(selectedSlot.start_time);
+      setCustomEndTime(selectedSlot.end_time);
+    }
+  }, [selectedSlot]);
 
   const handleBooking = async () => {
     if (!selectedSlot) {
@@ -85,6 +180,10 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
         description: "Please select an available time slot.",
         variant: "destructive",
       });
+      return;
+    }
+
+    if (!validateTimes()) {
       return;
     }
 
@@ -100,9 +199,11 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
 
     setSubmitting(true);
     try {
-      // Create start and end datetime
-      const startDateTime = new Date(`${selectedSlot.date}T${selectedSlot.start_time}`);
-      const endDateTime = addHours(startDateTime, duration / 60);
+      const duration = calculateDuration();
+      
+      // Create start and end datetime using custom times
+      const startDateTime = new Date(`${selectedSlot.date}T${customStartTime}`);
+      const endDateTime = new Date(`${selectedSlot.date}T${customEndTime}`);
 
       const bookingData = {
         user_id: user.id,
@@ -153,7 +254,7 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
           date: format(startDateTime, 'MMMM d, yyyy'),
           startTime: format(startDateTime, 'h:mm a'),
           endTime: format(endDateTime, 'h:mm a'),
-          duration,
+          duration: duration,
           mode: selectedSlot.mode,
           location: selectedSlot.location,
           price: calculateTotalPrice(),
@@ -196,6 +297,8 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
 
         // Reset form
         setSelectedSlot(null);
+        setCustomStartTime('');
+        setCustomEndTime('');
         setNotes('');
         loadAvailableSlots();
       }
@@ -283,7 +386,7 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
                               )}
                               <Clock className="h-4 w-4" />
                               <span className="font-medium">
-                                {slot.start_time} - {slot.end_time}
+                                {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -320,20 +423,71 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Duration Selection */}
-            <div className="space-y-3">
-              <Label>Session Duration</Label>
-              <Select value={duration.toString()} onValueChange={(value) => setDuration(parseInt(value))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="60">1 hour (60 minutes)</SelectItem>
-                  <SelectItem value="90">1.5 hours (90 minutes)</SelectItem>
-                  <SelectItem value="120">2 hours (120 minutes)</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Time Selection */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <Label>Start Time</Label>
+                <Select value={customStartTime} onValueChange={setCustomStartTime}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select start time" />
+                  </SelectTrigger>
+                  <SelectContent className='bg-background'>
+                    {generateTimeOptions()
+                      .filter(time => {
+                        const timeMinutes = timeToMinutes(time);
+                        const slotStart = timeToMinutes(selectedSlot.start_time);
+                        const slotEnd = timeToMinutes(selectedSlot.end_time);
+                        return timeMinutes >= slotStart && timeMinutes < slotEnd;
+                      })
+                      .map(time => (
+                        <SelectItem key={time} value={time}>
+                          {formatTime(time)}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label>End Time</Label>
+                <Select value={customEndTime} onValueChange={setCustomEndTime}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select end time" />
+                  </SelectTrigger>
+                  <SelectContent className='bg-background'>
+                    {generateTimeOptions()
+                      .filter(time => {
+                        const timeMinutes = timeToMinutes(time);
+                        const slotStart = timeToMinutes(selectedSlot.start_time);
+                        const slotEnd = timeToMinutes(selectedSlot.end_time);
+                        return timeMinutes > slotStart && timeMinutes <= slotEnd;
+                      })
+                      .map(time => (
+                        <SelectItem key={time} value={time}>
+                          {formatTime(time)}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
+            {/* Duration Display */}
+            {customStartTime && customEndTime && (
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm">
+                  <span className="font-semibold">Session Duration:</span>{' '}
+                  {calculateDuration() >= 60 ? (
+                    <>
+                      {Math.floor(calculateDuration() / 60)} hour{Math.floor(calculateDuration() / 60) !== 1 ? 's' : ''}{' '}
+                      {calculateDuration() % 60 > 0 && `${calculateDuration() % 60} minutes`}
+                    </>
+                  ) : (
+                    <span className="text-destructive">{calculateDuration()} minutes (minimum 1 hour required)</span>
+                  )}
+                </p>
+              </div>
+            )}
 
             {/* Notes */}
             <div className="space-y-2">
@@ -376,7 +530,16 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span>Session Duration:</span>
-                <span>{duration} minutes</span>
+                <span>
+                  {customStartTime && customEndTime ? (
+                    <>
+                      {Math.floor(calculateDuration() / 60)} hour{Math.floor(calculateDuration() / 60) !== 1 ? 's' : ''}{' '}
+                      {calculateDuration() % 60 > 0 && `${calculateDuration() % 60} min`}
+                    </>
+                  ) : (
+                    'Not set'
+                  )}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Hourly Rate ({selectedSlot.mode}):</span>
