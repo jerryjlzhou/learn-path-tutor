@@ -102,12 +102,12 @@ export function AboutSection() {
                       <div className="text-sm text-muted-foreground">Years</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-primary">100+</div>
+                      <div className="text-2xl font-bold text-primary">20+</div>
                       <div className="text-sm text-muted-foreground">Students</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-primary">95%</div>
-                      <div className="text-sm text-muted-foreground">Success Rate</div>
+                      <div className="text-2xl font-bold text-primary">5 Star</div>
+                      <div className="text-sm text-muted-foreground">Rating</div>
                     </div>
                   </div>
                 </CardContent>

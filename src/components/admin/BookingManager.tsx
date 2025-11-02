@@ -305,7 +305,7 @@ export function BookingManager() {
                 <SelectTrigger className="w-full md:w-[180px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className='bg-background'>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="confirmed">Confirmed</SelectItem>
@@ -318,7 +318,7 @@ export function BookingManager() {
                 <SelectTrigger className="w-full md:w-[180px]">
                   <SelectValue placeholder="Filter by mode" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className='bg-background'>
                   <SelectItem value="all">All Modes</SelectItem>
                   <SelectItem value="online">Online</SelectItem>
                   <SelectItem value="in-person">In-Person</SelectItem>
@@ -442,7 +442,7 @@ export function BookingManager() {
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
+                            <DropdownMenuContent className='bg-background' align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => handleEditBooking(booking)}>
