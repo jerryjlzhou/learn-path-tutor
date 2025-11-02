@@ -2,55 +2,73 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-const testimonials = [
-  {
-    id: 1,
-    rating: 5,
-    comment: "Helped me get into selective school!",
-    student: "Mia",
-    school: "Year 6"
-  },
-  {
-    id: 2,
-    rating: 5,
-    comment: "Amazing tutor, really patient and explains everything clearly.",
-    student: "James",
-    school: "Year 10"
-  },
-  {
-    id: 3,
-    rating: 5,
-    comment: "My maths grades improved dramatically after just a few sessions.",
-    student: "Sarah",
-    school: "Year 11"
-  },
-  {
-    id: 4,
-    rating: 4,
-    comment: "Great preparation for the OC test. Highly recommend!",
-    student: "Alex",
-    school: "Year 4"
-  },
-  {
-    id: 5,
-    rating: 5,
-    comment: "Professional and knowledgeable. Worth every dollar.",
-    student: "Emma",
-    school: "Year 12"
-  }
-];
+interface Testimonial {
+  id: string;
+  rating: number;
+  comment: string;
+  student: string;
+  school: string;
+}
 
 export function TestimonialsCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    loadTestimonials();
+  }, []);
+
+  useEffect(() => {
+    if (testimonials.length === 0) return;
+
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % testimonials.length);
     }, 5000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [testimonials.length]);
+
+  const loadTestimonials = async () => {
+    const hardcodedTestimonials = [
+      {
+        id: '1',
+        rating: 5,
+        comment: "Helped me get into selective school!",
+        student: "Mia",
+        school: "Year 6"
+      },
+      {
+        id: '2',
+        rating: 5,
+        comment: "Amazing tutor, really patient and explains everything clearly.",
+        student: "James",
+        school: "Year 10"
+      },
+    ];
+
+    try {
+      const { data, error } = await supabase
+        .from('testimonials' as any)
+        .select('*')
+        .eq('is_approved', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Use hardcoded testimonials if no approved reviews exist
+      const loadedTestimonials = (data as any) || [];
+      setTestimonials(loadedTestimonials.length > 0 ? loadedTestimonials : hardcodedTestimonials);
+    } catch (error) {
+      console.error('Error loading testimonials:', error);
+      // Fallback to hardcoded testimonials if there's an error
+      setTestimonials(hardcodedTestimonials);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const nextTestimonial = () => {
     setCurrentIndex((prev) => (prev + 1) % testimonials.length);
@@ -62,8 +80,34 @@ export function TestimonialsCarousel() {
 
   const currentTestimonial = testimonials[currentIndex];
 
+  if (loading || !currentTestimonial) {
+    return (
+      <section id="testimonials" className="py-20 bg-muted/30">
+        <div className="container">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              What Students Say
+            </h2>
+            <p className="text-lg text-muted-foreground mb-12">
+              Real feedback from students who've improved their grades
+            </p>
+            <Card className="max-w-2xl mx-auto shadow-medium">
+              <CardContent className="p-8">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-6 bg-muted rounded w-32 mx-auto"></div>
+                  <div className="h-20 bg-muted rounded"></div>
+                  <div className="h-4 bg-muted rounded w-24 mx-auto"></div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="py-20 bg-muted/30">
+    <section id="testimonials" className="py-20 bg-muted/30">
       <div className="container">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -136,6 +180,17 @@ export function TestimonialsCarousel() {
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
+          </div>
+
+          {/* Leave a Review Button */}
+          <div className="mt-8 text-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.href = '/submit-review'}
+            >
+              Leave a Review
+            </Button>
           </div>
         </div>
       </div>

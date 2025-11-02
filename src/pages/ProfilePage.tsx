@@ -18,12 +18,14 @@ import {
   Clock,
   MapPin,
   TrendingUp,
-  DollarSign
+  DollarSign,
+  Star
 } from 'lucide-react';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { AvailabilityManager } from '@/components/admin/AvailabilityManager';
 import { StudentManager } from '@/components/admin/StudentManager';
 import { BookingManager } from '@/components/admin/BookingManager';
+import { ReviewsManager } from '@/components/admin/ReviewsManager';
 import { ProfileSettings } from '@/components/admin/ProfileSettings';
 
 export function ProfilePage() {
@@ -155,6 +157,10 @@ export function ProfilePage() {
                   <Users className="h-4 w-4 mr-2" />
                   Students
                 </TabsTrigger>
+                <TabsTrigger value="reviews">
+                  <Star className="h-4 w-4 mr-2" />
+                  Reviews
+                </TabsTrigger>
                 <TabsTrigger value="settings">
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
@@ -175,6 +181,10 @@ export function ProfilePage() {
 
               <TabsContent value="students">
                 <StudentManager />
+              </TabsContent>
+
+              <TabsContent value="reviews">
+                <ReviewsManager />
               </TabsContent>
 
               <TabsContent value="settings">
