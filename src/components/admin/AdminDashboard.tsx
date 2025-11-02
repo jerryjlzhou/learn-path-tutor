@@ -11,6 +11,14 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { formatPrice } from '@/lib/pricing';
+import { Tables } from '@/integrations/supabase/types';
+
+type RecentBooking = Tables<'bookings', never> & {
+  profiles?: {
+    full_name: string;
+    email: string;
+  } | null;
+};
 
 interface DashboardStats {
   totalStudents: number;
@@ -28,7 +36,7 @@ export function AdminDashboard() {
     totalRevenue: 0,
     completedSessions: 0,
   });
-  const [recentBookings, setRecentBookings] = useState<any[]>([]);
+  const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -88,7 +96,7 @@ export function AdminDashboard() {
         completedSessions: completedSessions || 0,
       });
 
-      setRecentBookings(recentBookingsData || []);
+      setRecentBookings((recentBookingsData as RecentBooking[]) || []);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
