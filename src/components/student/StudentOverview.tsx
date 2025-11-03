@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Calendar, Clock, TrendingUp } from 'lucide-react';
+import { Calendar, Clock, TrendingUp, Star } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 
 type Booking = Tables<'bookings'>;
@@ -106,14 +106,25 @@ export function StudentOverview() {
           <p className="text-muted-foreground">
             Ready to boost your learning? Book your next tutoring session now.
           </p>
-          <Button 
-            size="lg" 
-            onClick={() => navigate('/booking')}
-            className="w-full md:w-auto"
-          >
-            <Calendar className="h-5 w-5 mr-2" />
-            Book Your Next Lesson
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button 
+              size="lg" 
+              onClick={() => navigate('/booking')}
+              className="flex-1 sm:flex-initial"
+            >
+              <Calendar className="h-5 w-5 mr-2" />
+              Book Your Next Lesson
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              onClick={() => navigate('/submit-review')}
+              className="flex-1 sm:flex-initial"
+            >
+              <Star className="h-5 w-5 mr-2" />
+              Leave a Review
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
