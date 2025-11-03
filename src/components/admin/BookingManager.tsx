@@ -467,7 +467,7 @@ export function BookingManager() {
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 onClick={() => setDeletingBooking(booking)}
-                                className="text-destructive focus:text-destructive"
+                                className="text-destructive focus:text-background focus:bg-destructive/90"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete Booking

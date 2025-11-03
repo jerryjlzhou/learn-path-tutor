@@ -416,15 +416,14 @@ export function AvailabilityManager() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEditSlot(slot)}
-                              disabled={slot.is_booked}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button
-                              variant="ghost"
+                              className='hover:text-background'
+                              variant="destructiveHover"
                               size="sm"
                               onClick={() => handleDeleteSlot(slot.id)}
-                              disabled={slot.is_booked}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
