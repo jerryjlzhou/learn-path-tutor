@@ -51,15 +51,15 @@ export function Hero() {
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Link to="/booking">
-              <Button size="lg" className="text-lg px-8 py-6 shadow-medium transition-smooth">
+            <Link to="/booking" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full text-lg px-8 py-6 shadow-medium transition-smooth">
                 Book a Free Trial
               </Button>
             </Link>
             <Button 
               variant="outline" 
               size="lg" 
-              className="text-lg px-8 py-6 transition-smooth"
+              className="w-full sm:w-auto text-lg px-8 py-6 transition-smooth"
               onClick={handleCreateAccount}
             >
               Create Account
