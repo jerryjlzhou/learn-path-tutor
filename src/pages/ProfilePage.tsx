@@ -117,22 +117,22 @@ export function ProfilePage() {
         <div className="max-w-6xl mx-auto">
           {/* Profile Header */}
           <Card className="mb-8">
-            <CardContent className="p-8">
-              <div className="flex items-center gap-6">
-                <Avatar className="h-20 w-20">
+            <CardContent className="p-4 sm:p-8">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+                <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
                   <AvatarImage src={profile.profile_picture_url} />
-                  <AvatarFallback className="text-2xl">
+                  <AvatarFallback className="text-xl sm:text-2xl">
                     {profile.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-3xl font-bold">{profile.full_name}</h1>
+                <div className="flex-1 text-center sm:text-left">
+                  <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mb-2">
+                    <h1 className="text-2xl sm:text-3xl font-bold">{profile.full_name}</h1>
                     <Badge variant={isAdmin ? 'default' : 'secondary'}>
                       {profile.role}
                     </Badge>
                   </div>
-                  <p className="text-muted-foreground mb-2">{user.email}</p>
+                  <p className="text-muted-foreground mb-2 text-sm sm:text-base">{user.email}</p>
                   {profile.school && (
                     <p className="text-sm text-muted-foreground">
                       {profile.school} • {profile.year_level}
@@ -146,28 +146,30 @@ export function ProfilePage() {
           {/* Admin Tabs */}
           {isAdmin ? (
             <Tabs value={activeTab} onValueChange={(value) => navigate(`/profile?tab=${value}`)} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="dashboard">
+              <TabsList className="inline-flex h-auto w-full justify-start overflow-x-auto overflow-y-hidden flex-nowrap rounded-lg bg-muted p-1">
+                <TabsTrigger value="dashboard" className="whitespace-nowrap">
                   <TrendingUp className="h-4 w-4 mr-2" />
-                  Dashboard
+                  <span className="hidden sm:inline">Dashboard</span>
+                  <span className="sm:hidden">Dash</span>
                 </TabsTrigger>
-                <TabsTrigger value="availability">
+                <TabsTrigger value="availability" className="whitespace-nowrap">
                   <Calendar className="h-4 w-4 mr-2" />
-                  Availability
+                  <span className="hidden sm:inline">Availability</span>
+                  <span className="sm:hidden">Times</span>
                 </TabsTrigger>
-                <TabsTrigger value="bookings">
+                <TabsTrigger value="bookings" className="whitespace-nowrap">
                   <BookOpen className="h-4 w-4 mr-2" />
                   Bookings
                 </TabsTrigger>
-                <TabsTrigger value="students">
+                <TabsTrigger value="students" className="whitespace-nowrap">
                   <Users className="h-4 w-4 mr-2" />
                   Students
                 </TabsTrigger>
-                <TabsTrigger value="reviews">
+                <TabsTrigger value="reviews" className="whitespace-nowrap">
                   <Star className="h-4 w-4 mr-2" />
                   Reviews
                 </TabsTrigger>
-                <TabsTrigger value="settings">
+                <TabsTrigger value="settings" className="whitespace-nowrap">
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
                 </TabsTrigger>
@@ -200,16 +202,18 @@ export function ProfilePage() {
           ) : (
             /* Student Profile */
             <Tabs value={activeTab} onValueChange={(value) => navigate(`/profile?tab=${value}`)} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="overview">
+              <TabsList className="grid w-full grid-cols-3 h-auto">
+                <TabsTrigger value="overview" className="whitespace-nowrap">
                   <User className="h-4 w-4 mr-2" />
-                  Overview
+                  <span className="hidden sm:inline">Overview</span>
+                  <span className="sm:hidden">Home</span>
                 </TabsTrigger>
-                <TabsTrigger value="bookings">
+                <TabsTrigger value="bookings" className="whitespace-nowrap">
                   <BookOpen className="h-4 w-4 mr-2" />
-                  My Bookings
+                  <span className="hidden sm:inline">My Bookings</span>
+                  <span className="sm:hidden">Bookings</span>
                 </TabsTrigger>
-                <TabsTrigger value="settings">
+                <TabsTrigger value="settings" className="whitespace-nowrap">
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
                 </TabsTrigger>
