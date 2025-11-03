@@ -186,30 +186,6 @@ export function ProfileSettings({ profile, onUpdate }: ProfileSettingsProps) {
               Change Password
             </Button>
           </div>
-
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <h4 className="font-medium">Email Notifications</h4>
-              <p className="text-sm text-muted-foreground">
-                Manage your email notification preferences
-              </p>
-            </div>
-            <Button variant="outline">
-              Manage
-            </Button>
-          </div>
-
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <h4 className="font-medium">Privacy Settings</h4>
-              <p className="text-sm text-muted-foreground">
-                Control who can see your information
-              </p>
-            </div>
-            <Button variant="outline">
-              Configure
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>
