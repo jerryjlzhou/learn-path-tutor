@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +40,7 @@ interface BookingFormProps {
 }
 
 export function BookingForm({ preselectedMode }: BookingFormProps) {
+  const navigate = useNavigate();
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
   const [customStartTime, setCustomStartTime] = useState<string>('');
   const [customEndTime, setCustomEndTime] = useState<string>('');
@@ -244,12 +246,10 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
           description: "Your lesson has been booked. Payment details will be sent separately.",
         });
 
-        // Reset form
-        setSelectedSlot(null);
-        setCustomStartTime('');
-        setCustomEndTime('');
-        setNotes('');
-        loadAvailableSlots();
+        // Redirect to bookings page
+        setTimeout(() => {
+          navigate('/profile?tab=bookings');
+        },);
       }
     } catch (error) {
       console.error('Error creating booking:', error);

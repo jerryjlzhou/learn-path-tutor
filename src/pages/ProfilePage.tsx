@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,11 +32,14 @@ import { User as SupabaseUser } from '@supabase/supabase-js';
 type Profile = Tables<'profiles'>;
 
 export function ProfilePage() {
+  const [searchParams] = useSearchParams();
   const [user, setUser] = useState<SupabaseUser>(null);
   const [profile, setProfile] = useState<Profile>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const activeTab = searchParams.get('tab') || (profile?.role === 'admin' ? 'dashboard' : 'overview');
 
   const checkUser = useCallback(async () => {
     try {
@@ -142,7 +145,7 @@ export function ProfilePage() {
 
           {/* Admin Tabs */}
           {isAdmin ? (
-            <Tabs defaultValue="dashboard" className="space-y-6">
+            <Tabs value={activeTab} onValueChange={(value) => navigate(`/profile?tab=${value}`)} className="space-y-6">
               <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="dashboard">
                   <TrendingUp className="h-4 w-4 mr-2" />
@@ -196,7 +199,7 @@ export function ProfilePage() {
             </Tabs>
           ) : (
             /* Student Profile */
-            <Tabs defaultValue="overview" className="space-y-6">
+            <Tabs value={activeTab} onValueChange={(value) => navigate(`/profile?tab=${value}`)} className="space-y-6">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="overview">
                   <User className="h-4 w-4 mr-2" />
