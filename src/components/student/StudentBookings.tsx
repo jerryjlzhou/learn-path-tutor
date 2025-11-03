@@ -164,9 +164,9 @@ export function StudentBookings() {
                       </div>
                       {booking.status === 'pending' && (
                         <Button
-                          variant="outline"
+                          variant="destructiveHover"
                           size="sm"
-                          className="text-destructive hover:text-destructive"
+                          className="text-destructive hover:text-white"
                           onClick={() => setCancellingId(booking.id)}
                         >
                           <XCircle className="h-4 w-4 mr-2" />
