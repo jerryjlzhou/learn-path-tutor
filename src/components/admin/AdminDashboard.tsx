@@ -88,6 +88,18 @@ export function AdminDashboard() {
         .order('created_at', { ascending: false })
         .limit(5);
 
+      // Handle deleted users in recent bookings
+      const processedBookings = (recentBookingsData || []).map(booking => {
+        const bookingWithDeletedUser = booking as typeof booking & { deleted_user_name?: string | null };
+        return {
+          ...booking,
+          profiles: booking.profiles || {
+            full_name: bookingWithDeletedUser.deleted_user_name || 'Deleted User',
+            email: null
+          }
+        };
+      });
+
       setStats({
         totalStudents: totalStudents || 0,
         totalBookings: totalBookings || 0,
@@ -96,7 +108,7 @@ export function AdminDashboard() {
         completedSessions: completedSessions || 0,
       });
 
-      setRecentBookings((recentBookingsData as RecentBooking[]) || []);
+      setRecentBookings(processedBookings as RecentBooking[]);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {

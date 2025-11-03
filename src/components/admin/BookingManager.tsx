@@ -93,6 +93,17 @@ export function BookingManager() {
       // Get profile data separately to avoid relationship issues
       const bookingsWithProfiles = await Promise.all(
         (data || []).map(async (booking) => {
+          // If user_id is null, the user has been deleted
+          if (!booking.user_id) {
+            return {
+              ...booking,
+              profiles: { 
+                full_name: booking.deleted_user_name || 'Deleted User', 
+                profile_picture_url: '' 
+              }
+            };
+          }
+
           const { data: profileData } = await supabase
             .from('profiles')
             .select('full_name, profile_picture_url')

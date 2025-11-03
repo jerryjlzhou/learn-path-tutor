@@ -132,7 +132,7 @@ export function ProfilePage() {
                   <p className="text-muted-foreground mb-2">{user.email}</p>
                   {profile.school && (
                     <p className="text-sm text-muted-foreground">
-                      {profile.school} • Year {profile.year_level}
+                      {profile.school} • {profile.year_level}
                     </p>
                   )}
                 </div>

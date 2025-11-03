@@ -1,11 +1,23 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Settings, Save, Upload } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Settings, Save, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tables } from '@/integrations/supabase/types';
@@ -24,7 +36,10 @@ export function ProfileSettings({ profile, onUpdate }: ProfileSettingsProps) {
     year_level: profile.year_level || '',
   });
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -36,28 +51,98 @@ export function ProfileSettings({ profile, onUpdate }: ProfileSettingsProps) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(formData)
-        .eq('user_id', profile.user_id);
+      // Get current user to ensure we're updating the right profile
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
 
-      if (error) throw error;
+      // Prepare update data with proper types
+      const updateData = {
+        full_name: formData.full_name.trim() || null,
+        school: formData.school.trim() || null,
+        year_level: formData.year_level.trim() || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('No data returned from update');
+      }
 
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
       });
 
+      // Call onUpdate to refresh the profile data
       onUpdate();
     } catch (error) {
       console.error('Error updating profile:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: "Error updating profile",
-        description: "There was a problem updating your profile.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Call the database function to delete the account
+      const { data, error } = await supabase.rpc('delete_user_account');
+
+      if (error) {
+        console.error('RPC error:', error);
+        throw new Error(error.message || 'Failed to delete account');
+      }
+
+      // Check the response from the function
+      if (data && !data.success) {
+        throw new Error(data.error || 'Failed to delete account');
+      }
+
+      toast({
+        title: "Account deleted",
+        description: "Your account has been permanently deleted.",
+      });
+
+      // Sign out and redirect
+      await supabase.auth.signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast({
+        title: "Error deleting account",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -71,25 +156,6 @@ export function ProfileSettings({ profile, onUpdate }: ProfileSettingsProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Profile Picture Section */}
-          <div className="flex items-center gap-6">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={profile.profile_picture_url} />
-              <AvatarFallback className="text-2xl">
-                {profile.full_name?.charAt(0) || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <Button variant="outline" size="sm">
-                <Upload className="h-4 w-4 mr-2" />
-                Change Photo
-              </Button>
-              <p className="text-sm text-muted-foreground mt-2">
-                Upload a new profile picture
-              </p>
-            </div>
-          </div>
-
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -114,12 +180,26 @@ export function ProfileSettings({ profile, onUpdate }: ProfileSettingsProps) {
 
             <div className="space-y-2">
               <Label htmlFor="year_level">Year Level</Label>
-              <Input
-                id="year_level"
+              <Select
                 value={formData.year_level}
-                onChange={(e) => handleInputChange('year_level', e.target.value)}
-                placeholder="e.g., Year 10, Graduate, etc."
-              />
+                onValueChange={(value) => handleInputChange('year_level', value)}
+              >
+                <SelectTrigger id="year_level">
+                  <SelectValue placeholder="Select year level" />
+                </SelectTrigger>
+                <SelectContent className='bg-background'>
+                  <SelectItem value="Year 3">Year 3</SelectItem>
+                  <SelectItem value="Year 4">Year 4</SelectItem>
+                  <SelectItem value="Year 5">Year 5</SelectItem>
+                  <SelectItem value="Year 6">Year 6</SelectItem>
+                  <SelectItem value="Year 7">Year 7</SelectItem>
+                  <SelectItem value="Year 8">Year 8</SelectItem>
+                  <SelectItem value="Year 9">Year 9</SelectItem>
+                  <SelectItem value="Year 10">Year 10</SelectItem>
+                  <SelectItem value="Year 11">Year 11</SelectItem>
+                  <SelectItem value="Year 12">Year 12</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -185,6 +265,79 @@ export function ProfileSettings({ profile, onUpdate }: ProfileSettingsProps) {
             <Button variant="outline">
               Change Password
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Danger Zone - Account Deletion */}
+      <Card className="border-destructive">
+        <CardHeader>
+          <CardTitle className="text-destructive">Danger Zone</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 border border-destructive rounded-lg">
+            <div>
+              <h4 className="font-medium text-destructive">Delete Account</h4>
+              <p className="text-sm text-muted-foreground">
+                Permanently delete your account and all associated data.
+                {profile.role === 'admin' 
+                  ? ' Your bookings will remain visible as "Deleted User" for revenue tracking.'
+                  : ' Your bookings will appear as "Deleted User" for the tutor.'}
+              </p>
+            </div>
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription className="space-y-2">
+                    <p className="font-semibold text-destructive">
+                      This action cannot be undone!
+                    </p>
+                    <p>
+                      This will permanently delete your account and remove your personal information from our servers.
+                    </p>
+                    {profile.role === 'student' ? (
+                      <>
+                        <p>The following will be deleted:</p>
+                        <ul className="list-disc list-inside space-y-1 text-sm">
+                          <li>Your profile information (name, school, year level)</li>
+                          <li>Your account credentials</li>
+                          <li>Your message history</li>
+                        </ul>
+                        <p>Your booking history will be preserved for the tutor but will show as "Deleted User".</p>
+                      </>
+                    ) : (
+                      <>
+                        <p>The following will be deleted:</p>
+                        <ul className="list-disc list-inside space-y-1 text-sm">
+                          <li>Your profile information</li>
+                          <li>Your account credentials</li>
+                          <li>Your availability settings</li>
+                          <li>Your message history</li>
+                        </ul>
+                        <p>Student bookings and revenue data will be preserved but will show as "Deleted User".</p>
+                      </>
+                    )}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleting ? 'Deleting...' : 'Yes, delete my account'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardContent>
       </Card>

@@ -50,6 +50,7 @@ export type Database = {
       bookings: {
         Row: {
           created_at: string
+          deleted_user_name: string | null
           duration_minutes: number
           end_datetime: string
           id: string
@@ -63,10 +64,11 @@ export type Database = {
           status: string
           stripe_payment_id: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
+          deleted_user_name?: string | null
           duration_minutes?: number
           end_datetime: string
           id?: string
@@ -80,10 +82,11 @@ export type Database = {
           status?: string
           stripe_payment_id?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
+          deleted_user_name?: string | null
           duration_minutes?: number
           end_datetime?: string
           id?: string
@@ -97,7 +100,7 @@ export type Database = {
           status?: string
           stripe_payment_id?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -228,6 +231,14 @@ export type Database = {
     }
     Functions: {
       is_admin: { Args: { user_id_param?: string }; Returns: boolean }
+      delete_user_account: { 
+        Args: Record<string, never>
+        Returns: {
+          success: boolean
+          message?: string
+          error?: string
+        }
+      }
     }
     Enums: {
       [_ in never]: never
