@@ -16,7 +16,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Calendar, Clock, MapPin, Monitor, DollarSign, XCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, Monitor, DollarSign, XCircle, Trash2 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { formatPrice } from '@/lib/pricing';
 
@@ -26,6 +26,7 @@ export function StudentBookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const loadBookings = useCallback(async () => {
@@ -81,6 +82,38 @@ export function StudentBookings() {
       });
     } finally {
       setCancellingId(null);
+    }
+  };
+
+  const handleDeleteBooking = async (bookingId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', bookingId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setBookings(prevBookings => prevBookings.filter(b => b.id !== bookingId));
+
+      toast({
+        title: "Session deleted",
+        description: "The past session has been removed from your list.",
+      });
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+      toast({
+        title: "Delete failed",
+        description: "There was a problem deleting the session.",
+        variant: "destructive",
+      });
+      await loadBookings();
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -166,7 +199,7 @@ export function StudentBookings() {
                         <Button
                           variant="destructiveHover"
                           size="sm"
-                          className="text-destructive hover:text-white"
+                          className="text-destructive hover:text-background"
                           onClick={() => setCancellingId(booking.id)}
                         >
                           <XCircle className="h-4 w-4 mr-2" />
@@ -235,7 +268,7 @@ export function StudentBookings() {
                 <Card key={booking.id} className="border opacity-75">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
-                      <div className="space-y-1">
+                      <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold">
                             {format(new Date(booking.start_datetime), 'MMM d, yyyy')}
@@ -251,13 +284,23 @@ export function StudentBookings() {
                           <span>• {booking.duration_minutes} min</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        {booking.mode === 'online' ? (
-                          <Monitor className="h-3 w-3" />
-                        ) : (
-                          <MapPin className="h-3 w-3" />
-                        )}
-                        <span>{booking.mode === 'online' ? 'Online' : 'In-Person'}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 text-sm">
+                          {booking.mode === 'online' ? (
+                            <Monitor className="h-3 w-3" />
+                          ) : (
+                            <MapPin className="h-3 w-3" />
+                          )}
+                          <span>{booking.mode === 'online' ? 'Online' : 'In-Person'}</span>
+                        </div>
+                        <Button
+                          variant="destructiveHover"
+                          size="sm"
+                          className="text-destructive hover:text-background"
+                          onClick={() => setDeletingId(booking.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -284,6 +327,27 @@ export function StudentBookings() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Cancel Booking
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Past Session?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this past session from your list? This will permanently remove it from your booking history.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Session</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingId && handleDeleteBooking(deletingId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Session
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
