@@ -357,16 +357,21 @@ export function BookingManager() {
               {filteredBookings.map((booking) => (
                 <div key={booking.id} className="p-6 hover:bg-muted/30 transition-colors">
                   <div className="flex items-start gap-4">
-                    <Avatar className="h-12 w-12">
+                    <Avatar className={`h-12 w-12 ${!booking.user_id ? 'opacity-60' : ''}`}>
                       <AvatarImage src={booking.profiles.profile_picture_url} />
-                      <AvatarFallback>
+                      <AvatarFallback className={!booking.user_id ? 'bg-muted' : ''}>
                         {booking.profiles.full_name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-3">
-                        <h3 className="font-semibold text-lg">{booking.profiles.full_name}</h3>
+                        <h3 className="font-semibold text-lg">
+                          {booking.profiles.full_name}
+                          {!booking.user_id && (
+                            <span className="text-muted-foreground text-sm ml-2">(Deleted User)</span>
+                          )}
+                        </h3>
                         {booking.is_free_trial && (
                           <Badge variant="secondary">Free Trial</Badge>
                         )}
