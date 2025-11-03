@@ -1,9 +1,32 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { GraduationCap, MapPin, Clock, Award } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export function Hero() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleCreateAccount = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // Check if user is already signed in
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      toast({
+        title: "You are already signed in!",
+        description: "You already have an active account.",
+      });
+      return;
+    }
+    
+    // If not signed in, navigate to signup
+    navigate('/auth?mode=signup');
+  };
+
   return (
     <section className="relative py-20 lg:py-32 overflow-hidden">
       {/* Background gradient */}
@@ -33,11 +56,14 @@ export function Hero() {
                 Book a Free Trial
               </Button>
             </Link>
-            <Link to="/auth?mode=signup">
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6 transition-smooth">
-                Create Account
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="text-lg px-8 py-6 transition-smooth"
+              onClick={handleCreateAccount}
+            >
+              Create Account
+            </Button>
           </div>
 
           {/* Trust indicators */}

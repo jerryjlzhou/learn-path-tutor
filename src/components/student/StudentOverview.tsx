@@ -110,7 +110,7 @@ export function StudentOverview() {
             <Button 
               size="lg" 
               onClick={() => navigate('/booking')}
-              className="flex-1 sm:flex-initial"
+              className="w-full sm:w-auto h-12 sm:h-10 text-base"
             >
               <Calendar className="h-5 w-5 mr-2" />
               Book Your Next Lesson
@@ -119,7 +119,7 @@ export function StudentOverview() {
               size="lg" 
               variant="outline"
               onClick={() => navigate('/submit-review')}
-              className="flex-1 sm:flex-initial"
+              className="w-full sm:w-auto h-12 sm:h-10 text-base"
             >
               <Star className="h-5 w-5 mr-2" />
               Leave a Review
