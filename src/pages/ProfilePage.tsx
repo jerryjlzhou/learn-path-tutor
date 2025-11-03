@@ -15,10 +15,7 @@ import {
   Users, 
   BookOpen, 
   Settings,
-  Clock,
-  MapPin,
   TrendingUp,
-  DollarSign,
   Star
 } from 'lucide-react';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
@@ -27,6 +24,8 @@ import { StudentManager } from '@/components/admin/StudentManager';
 import { BookingManager } from '@/components/admin/BookingManager';
 import { ReviewsManager } from '@/components/admin/ReviewsManager';
 import { ProfileSettings } from '@/components/admin/ProfileSettings';
+import { StudentBookings } from '@/components/student/StudentBookings';
+import { StudentOverview } from '@/components/student/StudentOverview';
 import { Tables } from '@/integrations/supabase/types';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -214,43 +213,11 @@ export function ProfilePage() {
               </TabsList>
 
               <TabsContent value="overview">
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Student Dashboard</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <p className="text-muted-foreground">
-                        Welcome to your student dashboard. Here you can view your bookings and manage your profile.
-                      </p>
-                      
-                      {/* Quick Action Button */}
-                      <div className="flex justify-center">
-                        <Button 
-                          size="lg" 
-                          onClick={() => navigate('/booking')}
-                          className="text-lg px-8 py-6"
-                        >
-                          <Calendar className="h-5 w-5 mr-3" />
-                          Book Your Next Lesson
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                <StudentOverview />
               </TabsContent>
 
               <TabsContent value="bookings">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>My Bookings</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">
-                      Your upcoming and past tutoring sessions will appear here.
-                    </p>
-                  </CardContent>
-                </Card>
+                <StudentBookings />
               </TabsContent>
 
               <TabsContent value="settings">
