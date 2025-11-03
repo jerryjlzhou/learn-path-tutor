@@ -52,7 +52,7 @@ export function Hero() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Link to="/booking" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full text-lg px-8 py-6 shadow-medium transition-smooth">
+              <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-6 shadow-medium transition-smooth">
                 Book a Free Trial
               </Button>
             </Link>
