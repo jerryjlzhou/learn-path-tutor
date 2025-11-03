@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import LogoOnly from '@/assets/images/LogoOnly-removebg-preview.png';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, LogOut, User } from 'lucide-react';
@@ -65,10 +66,8 @@ export function Navigation() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
-            T
-          </div>
+        <Link to="/" className="flex items-center space-x-3">
+          <img src={LogoOnly} alt="Jenius Education" className="h-8 w-auto" />
           <span className="text-xl font-bold">Jenius Education</span>
         </Link>
 

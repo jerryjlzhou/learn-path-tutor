@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin } from 'lucide-react';
+import LogoOnly from '@/assets/images/LogoOnly-removebg-preview.png';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -10,11 +11,9 @@ export function Footer() {
         <div className="grid md:grid-cols-4 gap-8">
           {/* Logo and Description */}
           <div className="space-y-4">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
-                T
-              </div>
-              <span className="text-xl font-bold">LearnPath</span>
+            <Link to="/" className="flex items-center space-x-3">
+              <img src={LogoOnly} alt="Jenius Education" className="h-8 w-auto" />
+              <span className="text-xl font-bold">Jenius Education</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               Professional 1-on-1 tutoring for Years 3-12, specializing in OC & Selective exams, Maths & English.
@@ -49,11 +48,11 @@ export function Footer() {
             <div className="space-y-3 text-sm text-muted-foreground">
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4" />
-                <span>contact@learnpath.com.au</span>
+                <span>jerry.zhou25@gmail.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4" />
-                <span>+61 4XX XXX XXX</span>
+                <span>+61 424 221 593</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4" />
@@ -64,10 +63,9 @@ export function Footer() {
         </div>
 
         <div className="border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
-          <p>© {currentYear} LearnPath Tutoring. All rights reserved.</p>
+          <p>© {currentYear} Jenius Education. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-primary transition-colors">Terms of Service</Link>
+            <Link to="/legal" className="hover:text-primary transition-colors">Privacy Policy & Terms</Link>
           </div>
         </div>
       </div>
