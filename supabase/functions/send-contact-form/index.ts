@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const BOOKINGS_EMAIL = Deno.env.get("BOOKINGS_EMAIL") || "bookings@jeniuseducation.com";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,23 +27,29 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to admin
     const emailResponse = await resend.emails.send({
-      from: "Contact Form <onboarding@resend.dev>",
+      from: `Jenius Education <${BOOKINGS_EMAIL}>`,
       to: ["jerry.zhou25@gmail.com"],
-      subject: `New Contact Form Submission from ${name}`,
+      subject: `New Contact Form - ${name}`,
       html: `
-        <h1>New Contact Form Submission</h1>
-        
-        <h2>Contact Details:</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email/Phone:</strong> ${contact}</p>
-        
-        <h2>Message:</h2>
-        <p style="white-space: pre-wrap;">${query}</p>
-        
-        <hr style="margin: 20px 0;">
-        <p style="color: #666; font-size: 12px;">
-          This message was sent from the contact form on your tutoring website.
-        </p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #1e293b;">New Contact Form Submission 📧</h1>
+          
+          <div style="background-color: #f8fafc; border-radius: 8px; padding: 16px; margin: 20px 0;">
+            <h2 style="margin-top: 0;">Contact Details:</h2>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email/Phone:</strong> ${contact}</p>
+          </div>
+          
+          <h2>Message:</h2>
+          <div style="background-color: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
+            <p style="white-space: pre-wrap; margin: 0;">${query}</p>
+          </div>
+          
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+          <p style="color: #64748b; font-size: 12px;">
+            This message was sent from the contact form on jeniuseducation.com
+          </p>
+        </div>
       `,
       replyTo: contact.includes('@') ? contact : undefined,
     });

@@ -146,7 +146,7 @@ export function ProfilePage() {
           {/* Admin Tabs */}
           {isAdmin ? (
             <Tabs value={activeTab} onValueChange={(value) => navigate(`/profile?tab=${value}`)} className="space-y-6">
-              <TabsList className="inline-flex h-auto w-full justify-start overflow-x-auto overflow-y-hidden flex-nowrap rounded-lg bg-muted p-1">
+              <TabsList className="inline-flex lg:grid lg:grid-cols-6 h-auto w-full justify-start lg:justify-center overflow-x-auto overflow-y-hidden flex-nowrap rounded-lg bg-muted p-1">
                 <TabsTrigger value="dashboard" className="whitespace-nowrap">
                   <TrendingUp className="h-4 w-4 mr-2" />
                   <span className="hidden sm:inline">Dashboard</span>
