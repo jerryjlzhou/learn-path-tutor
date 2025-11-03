@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { GraduationCap, MapPin, Calendar, Award } from 'lucide-react';
+import JerryProfile from '@/assets/images/JerryCircleProfile.png';
 
 export function AboutSection() {
   const credentials = [
@@ -70,9 +71,11 @@ export function AboutSection() {
               <Card className="shadow-medium">
                 <CardContent className="p-8">
                   <div className="text-center mb-6">
-                    <div className="w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
-                      LP
-                    </div>
+                    <img 
+                      src={JerryProfile} 
+                      alt="Jerry Zhou" 
+                      className="w-28 h-28 rounded-full mx-auto mb-4 object-cover"
+                    />
                     <h3 className="text-2xl font-bold mb-2">Jerry Zhou</h3>
                     <div className="flex justify-center gap-2 mb-4">
                       <Badge>UNSW Student</Badge>

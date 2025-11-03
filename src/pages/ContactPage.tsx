@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Phone, Mail, Send, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import JerryFullProfile from '@/assets/images/JerryFullProfile.png';
+import Logonamed from '@/assets/images/Logonamed.png'
 
 export default function ContactPage() {
   const [name, setName] = useState('');
@@ -82,9 +84,10 @@ export default function ContactPage() {
               {/* Profile Picture Placeholder */}
               <Card className="overflow-hidden">
                 <CardContent className="p-0">
-                  <div className="aspect-square bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                    <User className="h-32 w-32 text-muted-foreground/30" />
-                  </div>
+                  <img 
+                  src={Logonamed} 
+                  alt="Logo" 
+                  />
                 </CardContent>
               </Card>
 
