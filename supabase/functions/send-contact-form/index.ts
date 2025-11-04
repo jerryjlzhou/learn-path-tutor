@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const BOOKINGS_EMAIL = Deno.env.get("BOOKINGS_EMAIL") || "bookings@jeniuseducation.com";
+const NOTIFICATIONS_EMAIL = Deno.env.get("NOTIFICATIONS_EMAIL") || "notifications@jeniuseducation.com";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,7 +27,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to admin
     const emailResponse = await resend.emails.send({
-      from: `Jenius Education <${BOOKINGS_EMAIL}>`,
+      from: `Jenius Education <${NOTIFICATIONS_EMAIL}>`,
       to: ["jerry.zhou25@gmail.com"],
       subject: `New Contact Form - ${name}`,
       html: `
