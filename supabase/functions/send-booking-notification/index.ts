@@ -51,13 +51,25 @@ const handler = async (req: Request): Promise<Response> => {
       
       ${isOnline ? `
         <div style="background-color: #f0f9ff; border: 2px solid #3b82f6; border-radius: 8px; padding: 16px; margin: 20px 0;">
-          <h3 style="color: #1e40af; margin-top: 0;">📹 Online Session Link</h3>
-          <p style="margin: 8px 0;"><strong>Zoom Meeting:</strong></p>
-          <p style="background-color: white; padding: 12px; border-radius: 4px; font-family: monospace; color: #dc2626;">
-            [Zoom link will be sent 24 hours before the session]
-          </p>
+          <h3 style="color: #1e40af; margin-top: 0;">📹 Online Session - Zoom Meeting</h3>
+          <p style="margin: 8px 0;">Jerry Zhou is inviting you to a scheduled Zoom meeting from <strong>${bookingDetails.startTime}</strong> to <strong>${bookingDetails.endTime}</strong> on <strong>${bookingDetails.date}</strong>.</p>
+          
+          <div style="background-color: white; padding: 16px; border-radius: 4px; margin: 12px 0;">
+            <p style="margin: 4px 0;"><strong>Join Zoom Meeting:</strong></p>
+            <p style="margin: 8px 0;">
+              <a href="https://us06web.zoom.us/j/4823161014?pwd=QVhoQTlocjlJUnJSLzJPaEJZZ0lHUT09" 
+                 style="color: #3b82f6; text-decoration: none; word-break: break-all;">
+                https://us06web.zoom.us/j/4823161014?pwd=QVhoQTlocjlJUnJSLzJPaEJZZ0lHUT09
+              </a>
+            </p>
+            <p style="margin: 8px 0; font-size: 14px; color: #64748b;">
+              <strong>Meeting ID:</strong> 482 316 1014<br>
+              <strong>Passcode:</strong> vqZ4BU
+            </p>
+          </div>
+          
           <p style="font-size: 14px; color: #64748b; margin-bottom: 0;">
-            You'll receive the meeting link in a separate email closer to your session time.
+            💡 Tip: Click the link above or enter the Meeting ID and Passcode in your Zoom app.
           </p>
         </div>
       ` : ''}
@@ -93,8 +105,6 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Student email sent:", studentEmailResponse);
-
     // Send email to admin/tutor
     const adminEmailResponse = await resend.emails.send({
       from: `Jenius Education <${BOOKINGS_EMAIL}>`,
@@ -127,8 +137,6 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
       `,
     });
-
-    console.log("Admin email sent:", adminEmailResponse);
 
     return new Response(
       JSON.stringify({ 
