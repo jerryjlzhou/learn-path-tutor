@@ -108,9 +108,9 @@ serve(async (req) => {
     }
 
     // 1. Create the booking (match actual database schema)
-    // Combine date + time to create timestamps
-    const startDateTime = new Date(`${slot_date}T${start_time}`);
-    const endDateTime = new Date(`${slot_date}T${end_time}`);
+    // Combine date + time and treat as Australia/Sydney timezone
+    const startDateTime = new Date(`${slot_date}T${start_time}+11:00`);
+    const endDateTime = new Date(`${slot_date}T${end_time}+11:00`);
     
     const bookingData = {
       user_id,

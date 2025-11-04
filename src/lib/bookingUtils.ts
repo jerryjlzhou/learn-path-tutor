@@ -46,9 +46,9 @@ export async function createBooking(data: BookingData): Promise<BookingResult> {
   const duration = calculateDuration(customStartTime, customEndTime);
   const totalPrice = calculateSessionPrice(selectedSlot.mode, duration);
   
-  // Create start and end datetime using custom times
-  const startDateTime = new Date(`${selectedSlot.date}T${customStartTime}`);
-  const endDateTime = new Date(`${selectedSlot.date}T${customEndTime}`);
+  // Create start and end datetime using custom times (Australia/Sydney timezone)
+  const startDateTime = new Date(`${selectedSlot.date}T${customStartTime}+11:00`);
+  const endDateTime = new Date(`${selectedSlot.date}T${customEndTime}+11:00`);
 
   const bookingData = {
     user_id: userId,
