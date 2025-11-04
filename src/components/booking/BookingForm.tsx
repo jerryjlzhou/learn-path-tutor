@@ -136,52 +136,70 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
 
     setSubmitting(true);
     try {
-      // Create the booking
-      const { booking, totalPrice } = await createBooking({
-        selectedSlot,
-        customStartTime,
-        customEndTime,
-        userId: user.id,
-        paymentMethod,
-        notes,
-      });
-
-      // Update availability slots (split or delete)
-      await updateAvailabilityAfterBooking({
-        selectedSlot,
-        customStartTime,
-        customEndTime,
-      });
-
-      // Send notification emails
-      await sendBookingNotifications(
-        booking,
-        selectedSlot,
-        customStartTime,
-        customEndTime,
-        totalPrice,
-        paymentMethod
-      );
-
-      // Reload available slots and reset form
-      await loadSlots();
-      setSelectedSlot(null);
-      setCustomStartTime('');
-      setCustomEndTime('');
-      setNotes('');
+      const duration = calculateDuration(customStartTime, customEndTime);
+      const totalPrice = calculateSessionPrice(selectedSlot.mode, duration);
 
       if (paymentMethod === 'stripe') {
-        // Create Stripe checkout session
-        const checkoutUrl = await createStripeCheckout(booking.id, totalPrice);
+        // For card payment: Redirect to Stripe checkout with booking details
+        // Booking will be created via webhook after successful payment
+        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-booking-checkout', {
+          body: {
+            bookingDetails: {
+              userId: user.id,
+              slotId: selectedSlot.id,
+              slotDate: selectedSlot.date,
+              slotMode: selectedSlot.mode,
+              slotLocation: selectedSlot.location,
+              startTime: customStartTime,
+              endTime: customEndTime,
+              duration: duration,
+              notes: notes,
+              amount: totalPrice,
+            }
+          }
+        });
+
+        if (checkoutError) throw checkoutError;
         
-        if (checkoutUrl) {
-          window.open(checkoutUrl, '_blank');
-          toast({
-            title: "Redirecting to payment",
-            description: "You'll be redirected to Stripe to complete your payment.",
-          });
+        if (checkoutData?.url) {
+          // Redirect to Stripe Checkout
+          window.location.href = checkoutData.url;
         }
       } else {
+        // For "Pay Later": Create booking immediately
+        const { booking, totalPrice: price } = await createBooking({
+          selectedSlot,
+          customStartTime,
+          customEndTime,
+          userId: user.id,
+          paymentMethod,
+          notes,
+        });
+
+        // Update availability slots (split or delete)
+        await updateAvailabilityAfterBooking({
+          selectedSlot,
+          customStartTime,
+          customEndTime,
+        });
+
+        // Send notification emails
+        await sendBookingNotifications(
+          booking,
+          selectedSlot,
+          customStartTime,
+          customEndTime,
+          price,
+          paymentMethod
+        );
+
+        // Reload available slots and reset form
+        await loadSlots();
+        setSelectedSlot(null);
+        setCustomStartTime('');
+        setCustomEndTime('');
+        setNotes('');
+
         toast({
           title: "Booking confirmed!",
           description: "Your lesson has been booked. Payment details will be sent separately.",

@@ -24,13 +24,70 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
 
-    const { bookingId, amount } = await req.json();
+    const { bookingDetails } = await req.json();
     
-    if (!bookingId || !amount) {
-      throw new Error("Missing required parameters: bookingId and amount");
+    if (!bookingDetails) {
+      throw new Error("Missing required parameter: bookingDetails");
     }
 
-    console.log("Creating checkout session for booking:", { bookingId, amount, userEmail: user.email });
+    const {
+      userId,
+      slotId,
+      slotDate,
+      slotMode,
+      slotLocation,
+      startTime,
+      endTime,
+      duration,
+      notes,
+      amount,
+    } = bookingDetails;
+
+    // Format booking details for display
+    const startDateTime = new Date(`${slotDate}T${startTime}`);
+    const endDateTime = new Date(`${slotDate}T${endTime}`);
+    
+    const formattedDate = startDateTime.toLocaleDateString("en-US", { 
+      weekday: "long", 
+      year: "numeric", 
+      month: "long", 
+      day: "numeric" 
+    });
+    
+    const formattedStartTime = startDateTime.toLocaleTimeString("en-US", { 
+      hour: "numeric", 
+      minute: "2-digit", 
+      hour12: true 
+    });
+    
+    const formattedEndTime = endDateTime.toLocaleTimeString("en-US", { 
+      hour: "numeric", 
+      minute: "2-digit", 
+      hour12: true 
+    });
+
+    const durationHours = Math.floor(duration / 60);
+    const durationMins = duration % 60;
+    const durationText = durationHours > 0 
+      ? `${durationHours} hour${durationHours !== 1 ? 's' : ''}${durationMins > 0 ? ` ${durationMins} min` : ''}`
+      : `${durationMins} minutes`;
+
+    const mode = slotMode === 'online' ? 'Online' : 'In-Person';
+    const sessionName = `${mode} Tutoring Session`;
+    
+    const description = [
+      `📅 ${formattedDate}`,
+      `🕐 ${formattedStartTime} - ${formattedEndTime}`,
+      `⏱️ Duration: ${durationText}`,
+      slotLocation ? `📍 ${slotLocation}` : '',
+    ].filter(Boolean).join('\n');
+
+    console.log("Creating checkout session with booking details:", { 
+      sessionName,
+      description,
+      amount,
+      userEmail: user.email 
+    });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
       apiVersion: "2025-08-27.basil" 
@@ -44,6 +101,7 @@ serve(async (req) => {
     }
 
     // Create checkout session for one-time payment
+    // Store all booking details in metadata to create booking after payment
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -52,8 +110,8 @@ serve(async (req) => {
           price_data: {
             currency: "aud",
             product_data: {
-              name: "Tutoring Session",
-              description: `Booking ID: ${bookingId}`,
+              name: sessionName,
+              description: description,
             },
             unit_amount: amount, // amount in cents
           },
@@ -61,10 +119,19 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/booking?success=true&booking_id=${bookingId}`,
-      cancel_url: `${req.headers.get("origin")}/booking?canceled=true`,
+      success_url: `${req.headers.get("origin")}/profile?tab=bookings&payment=success`,
+      cancel_url: `${req.headers.get("origin")}/booking?payment=canceled`,
       metadata: {
-        booking_id: bookingId,
+        user_id: userId,
+        slot_id: slotId,
+        slot_date: slotDate,
+        slot_mode: slotMode,
+        slot_location: slotLocation || '',
+        start_time: startTime,
+        end_time: endTime,
+        duration: duration.toString(),
+        notes: notes || '',
+        amount: amount.toString(),
       },
     });
 
