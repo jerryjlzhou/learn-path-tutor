@@ -180,11 +180,70 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
       if (bookingError) throw bookingError;
       if (!createdBooking) throw new Error('Failed to create booking');
 
-      // Mark slot as booked
-      await supabase
-        .from('availability')
-        .update({ is_booked: true })
-        .eq('id', selectedSlot.id);
+      // Handle availability slot updates based on mode
+      if (selectedSlot.mode === 'in-person') {
+        // For in-person sessions, delete the entire slot
+        await supabase
+          .from('availability')
+          .delete()
+          .eq('id', selectedSlot.id);
+      } else {
+        // For online sessions, split the slot or delete if fully booked
+        const slotStart = timeToMinutes(selectedSlot.start_time);
+        const slotEnd = timeToMinutes(selectedSlot.end_time);
+        const bookedStart = timeToMinutes(customStartTime);
+        const bookedEnd = timeToMinutes(customEndTime);
+
+        const isFullyBooked = (bookedStart === slotStart && bookedEnd === slotEnd);
+
+        if (isFullyBooked) {
+          // Delete the slot if the entire time is booked
+          await supabase
+            .from('availability')
+            .delete()
+            .eq('id', selectedSlot.id);
+        } else {
+          // Delete the original slot
+          await supabase
+            .from('availability')
+            .delete()
+            .eq('id', selectedSlot.id);
+
+          // Create new slots for remaining time
+          const newSlots = [];
+
+          // Add slot before booking if there's time
+          if (slotStart < bookedStart) {
+            newSlots.push({
+              date: selectedSlot.date,
+              start_time: selectedSlot.start_time,
+              end_time: customStartTime,
+              mode: selectedSlot.mode,
+              location: selectedSlot.location,
+              is_booked: false,
+            });
+          }
+
+          // Add slot after booking if there's time
+          if (bookedEnd < slotEnd) {
+            newSlots.push({
+              date: selectedSlot.date,
+              start_time: customEndTime,
+              end_time: selectedSlot.end_time,
+              mode: selectedSlot.mode,
+              location: selectedSlot.location,
+              is_booked: false,
+            });
+          }
+
+          // Insert new slots if any
+          if (newSlots.length > 0) {
+            await supabase
+              .from('availability')
+              .insert(newSlots);
+          }
+        }
+      }
 
       // Get user profile for notifications
       const { data: userProfile } = await supabase
@@ -221,6 +280,13 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
         console.error('Error sending notification emails:', emailError);
       }
 
+      // Reload available slots to reflect changes
+      await loadAvailableSlots();
+      setSelectedSlot(null);
+      setCustomStartTime('');
+      setCustomEndTime('');
+      setNotes('');
+
       if (paymentMethod === 'stripe') {
         // Create Stripe checkout session
         const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-booking-checkout', {
@@ -249,7 +315,7 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
         // Redirect to bookings page
         setTimeout(() => {
           navigate('/profile?tab=bookings');
-        },);
+        }, 1500);
       }
     } catch (error) {
       console.error('Error creating booking:', error);
