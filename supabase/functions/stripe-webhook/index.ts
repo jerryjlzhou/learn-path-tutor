@@ -172,10 +172,10 @@ serve(async (req) => {
       } else {
         // Online booking: split the slot if needed
         try {
-          const slotStart = new Date(`${slot_date}T${slot.start_time}`);
-          const slotEnd = new Date(`${slot_date}T${slot.end_time}`);
-          const bookingStart = new Date(`${slot_date}T${start_time}`);
-          const bookingEnd = new Date(`${slot_date}T${end_time}`);
+          const slotStart = new Date(`${slot_date}T${slot.start_time}+11:00`);
+          const slotEnd = new Date(`${slot_date}T${slot.end_time}+11:00`);
+          const bookingStart = new Date(`${slot_date}T${start_time}+11:00`);
+          const bookingEnd = new Date(`${slot_date}T${end_time}+11:00`);
 
           const isFullSlot =
             bookingStart.getTime() === slotStart.getTime() &&
@@ -195,12 +195,11 @@ serve(async (req) => {
             }
           } else {
             // Split the slot
-            const slotsToInsert: any[] = [];
+            const slotsToInsert = [];
 
             // Create slot before booking if there's time
             if (bookingStart.getTime() > slotStart.getTime()) {
               slotsToInsert.push({
-                tutor_id: slot.tutor_id,
                 date: slot_date,
                 start_time: slot.start_time,
                 end_time: start_time,
@@ -213,7 +212,6 @@ serve(async (req) => {
             // Create slot after booking if there's time
             if (bookingEnd.getTime() < slotEnd.getTime()) {
               slotsToInsert.push({
-                tutor_id: slot.tutor_id,
                 date: slot_date,
                 start_time: end_time,
                 end_time: slot.end_time,
