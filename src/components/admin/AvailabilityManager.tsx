@@ -24,6 +24,15 @@ interface AvailabilitySlot {
   created_at: string;
 }
 
+// Helper function to format time from HH:MM:SS to 12-hour format
+const formatTime12Hour = (time: string): string => {
+  const [hours, minutes] = time.split(':');
+  const hour = parseInt(hours, 10);
+  const period = hour >= 12 ? 'pm' : 'am';
+  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${displayHour}:${minutes}${period}`;
+};
+
 export function AvailabilityManager() {
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -387,7 +396,7 @@ export function AvailabilityManager() {
                             </div>
                             <div>
                               <p className="font-medium">
-                                {slot.start_time} - {slot.end_time}
+                                {formatTime12Hour(slot.start_time)} - {formatTime12Hour(slot.end_time)}
                               </p>
                               <div className="flex items-center gap-2 mt-1">
                                 <Badge 
