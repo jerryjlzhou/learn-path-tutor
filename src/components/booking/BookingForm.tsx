@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -10,11 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Calendar as CalendarIcon, Clock, MapPin, Monitor, CreditCard, Banknote } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { format, addHours, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { calculateSessionPrice, formatPrice, getHourlyRate, type SessionMode } from '@/lib/pricing';
 import { 
   formatTime, 
@@ -24,6 +21,8 @@ import {
   calculateEndTime
 } from '@/lib/timeUtils';
 import { validateBookingTimes } from '@/lib/bookingValidation';
+import { loadAvailableSlots, updateAvailabilityAfterBooking } from '@/lib/availabilityUtils';
+import { createBooking, sendBookingNotifications, createStripeCheckout } from '@/lib/bookingUtils';
 
 interface AvailabilitySlot {
   id: string;
@@ -51,23 +50,10 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const loadAvailableSlots = useCallback(async () => {
+  const loadSlots = useCallback(async () => {
     try {
-      const today = format(new Date(), 'yyyy-MM-dd');
-      const { data, error } = await supabase
-        .from('availability')
-        .select('*')
-        .eq('is_booked', false)
-        .gte('date', today)
-        .order('date', { ascending: true })
-        .order('start_time', { ascending: true });
-
-      if (error) throw error;
-
-      setAvailableSlots((data || []).map(slot => ({
-        ...slot,
-        mode: slot.mode as SessionMode
-      })));
+      const slots = await loadAvailableSlots();
+      setAvailableSlots(slots);
     } catch (error) {
       console.error('Error loading available slots:', error);
       toast({
@@ -81,8 +67,8 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
   }, [toast]);
 
   useEffect(() => {
-    loadAvailableSlots();
-  }, [loadAvailableSlots]);
+    loadSlots();
+  }, [loadSlots]);
 
   // Validate time selection with toast notifications
   const validateTimes = () => {
@@ -150,138 +136,35 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
 
     setSubmitting(true);
     try {
-      const duration = calculateDuration(customStartTime, customEndTime);
-      
-      // Create start and end datetime using custom times
-      const startDateTime = new Date(`${selectedSlot.date}T${customStartTime}`);
-      const endDateTime = new Date(`${selectedSlot.date}T${customEndTime}`);
-
-      const bookingData = {
-        user_id: user.id,
-        start_datetime: startDateTime.toISOString(),
-        end_datetime: endDateTime.toISOString(),
-        duration_minutes: duration,
-        mode: selectedSlot.mode,
-        status: 'pending',
-        price_cents: calculateTotalPrice(),
-        payment_status: paymentMethod === 'stripe' ? 'pending' : 'unpaid',
-        location: selectedSlot.location || null,
-        notes: notes || null,
-        is_free_trial: false
-      };
-
-      // Create booking first
-      const { data: createdBooking, error: bookingError } = await supabase
-        .from('bookings')
-        .insert(bookingData)
-        .select()
-        .single();
-
-      if (bookingError) throw bookingError;
-      if (!createdBooking) throw new Error('Failed to create booking');
-
-      // Handle availability slot updates based on mode
-      if (selectedSlot.mode === 'in-person') {
-        // For in-person sessions, delete the entire slot
-        await supabase
-          .from('availability')
-          .delete()
-          .eq('id', selectedSlot.id);
-      } else {
-        // For online sessions, split the slot or delete if fully booked
-        const slotStart = timeToMinutes(selectedSlot.start_time);
-        const slotEnd = timeToMinutes(selectedSlot.end_time);
-        const bookedStart = timeToMinutes(customStartTime);
-        const bookedEnd = timeToMinutes(customEndTime);
-
-        const isFullyBooked = (bookedStart === slotStart && bookedEnd === slotEnd);
-
-        if (isFullyBooked) {
-          // Delete the slot if the entire time is booked
-          await supabase
-            .from('availability')
-            .delete()
-            .eq('id', selectedSlot.id);
-        } else {
-          // Delete the original slot
-          await supabase
-            .from('availability')
-            .delete()
-            .eq('id', selectedSlot.id);
-
-          // Create new slots for remaining time
-          const newSlots = [];
-
-          // Add slot before booking if there's time
-          if (slotStart < bookedStart) {
-            newSlots.push({
-              date: selectedSlot.date,
-              start_time: selectedSlot.start_time,
-              end_time: customStartTime,
-              mode: selectedSlot.mode,
-              location: selectedSlot.location,
-              is_booked: false,
-            });
-          }
-
-          // Add slot after booking if there's time
-          if (bookedEnd < slotEnd) {
-            newSlots.push({
-              date: selectedSlot.date,
-              start_time: customEndTime,
-              end_time: selectedSlot.end_time,
-              mode: selectedSlot.mode,
-              location: selectedSlot.location,
-              is_booked: false,
-            });
-          }
-
-          // Insert new slots if any
-          if (newSlots.length > 0) {
-            await supabase
-              .from('availability')
-              .insert(newSlots);
-          }
-        }
-      }
-
-      // Get user profile for notifications
-      const { data: userProfile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('user_id', user.id)
-        .single();
-
-      // Use hardcoded admin email (or you could store this in a config)
-      const adminEmail = 'jerry.zhou25@gmail.com';
-
-      // Send email notifications
-      const notificationPayload = {
-        studentEmail: user.email || '',
-        studentName: userProfile?.full_name || 'Student',
-        adminEmail,
-        bookingDetails: {
-          date: format(startDateTime, 'MMMM d, yyyy'),
-          startTime: format(startDateTime, 'h:mm a'),
-          endTime: format(endDateTime, 'h:mm a'),
-          duration: duration,
-          mode: selectedSlot.mode,
-          location: selectedSlot.location,
-          price: calculateTotalPrice(),
-          paymentStatus: paymentMethod === 'stripe' ? 'pending' : 'unpaid',
-        },
-      };
-
-      const { error: emailError } = await supabase.functions.invoke('send-booking-notification', {
-        body: notificationPayload,
+      // Create the booking
+      const { booking, totalPrice } = await createBooking({
+        selectedSlot,
+        customStartTime,
+        customEndTime,
+        userId: user.id,
+        paymentMethod,
+        notes,
       });
 
-      if (emailError) {
-        console.error('Error sending notification emails:', emailError);
-      }
+      // Update availability slots (split or delete)
+      await updateAvailabilityAfterBooking({
+        selectedSlot,
+        customStartTime,
+        customEndTime,
+      });
 
-      // Reload available slots to reflect changes
-      await loadAvailableSlots();
+      // Send notification emails
+      await sendBookingNotifications(
+        booking,
+        selectedSlot,
+        customStartTime,
+        customEndTime,
+        totalPrice,
+        paymentMethod
+      );
+
+      // Reload available slots and reset form
+      await loadSlots();
       setSelectedSlot(null);
       setCustomStartTime('');
       setCustomEndTime('');
@@ -289,18 +172,10 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
 
       if (paymentMethod === 'stripe') {
         // Create Stripe checkout session
-        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-booking-checkout', {
-          body: {
-            bookingId: createdBooking.id,
-            amount: calculateTotalPrice(),
-          }
-        });
-
-        if (checkoutError) throw checkoutError;
+        const checkoutUrl = await createStripeCheckout(booking.id, totalPrice);
         
-        // Redirect to Stripe Checkout
-        if (checkoutData?.url) {
-          window.open(checkoutData.url, '_blank');
+        if (checkoutUrl) {
+          window.open(checkoutUrl, '_blank');
           toast({
             title: "Redirecting to payment",
             description: "You'll be redirected to Stripe to complete your payment.",
