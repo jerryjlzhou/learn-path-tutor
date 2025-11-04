@@ -252,19 +252,47 @@ serve(async (req) => {
 
     // 3. Send notification emails (fire-and-forget)
     try {
+      // Get user profile for student name
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user_id)
+        .single();
+
+      // Format date and times for email
+      const formattedDate = startDateTime.toLocaleDateString("en-US", { 
+        month: "long", 
+        day: "numeric", 
+        year: "numeric" 
+      });
+      
+      const formattedStartTime = startDateTime.toLocaleTimeString("en-US", { 
+        hour: "numeric", 
+        minute: "2-digit", 
+        hour12: true 
+      });
+      
+      const formattedEndTime = endDateTime.toLocaleTimeString("en-US", { 
+        hour: "numeric", 
+        minute: "2-digit", 
+        hour12: true 
+      });
+
+      const adminEmail = 'jerry.zhou25@gmail.com';
+
       const { error: emailError } = await supabase.functions.invoke("send-booking-notification", {
         body: {
-          bookingId: booking.id,
           studentEmail: session.customer_details?.email || session.customer_email,
-          tutorEmail: slot?.tutor_id,
+          studentName: userProfile?.full_name || 'Student',
+          adminEmail: adminEmail,
           bookingDetails: {
-            date: slot_date,
-            startTime: start_time,
-            endTime: end_time,
+            date: formattedDate,
+            startTime: formattedStartTime,
+            endTime: formattedEndTime,
             mode: slot_mode,
-            location: slot_location,
-            duration,
-            paymentMethod: "stripe",
+            location: slot_location || '',
+            duration: duration,
+            price: amount,
             paymentStatus: "paid",
           },
         },

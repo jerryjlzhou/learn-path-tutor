@@ -73,14 +73,18 @@ serve(async (req) => {
       : `${durationMins} minutes`;
 
     const mode = slotMode === 'online' ? 'Online' : 'In-Person';
-    const sessionName = `${mode} Tutoring Session`;
+    const sessionName = `Jenius Education`;
     
-    const description = [
-      `📅 ${formattedDate}`,
-      `🕐 ${formattedStartTime} - ${formattedEndTime}`,
-      `⏱️ Duration: ${durationText}`,
-      slotLocation ? `📍 ${slotLocation}` : '',
-    ].filter(Boolean).join('\n');
+    const descriptionParts = [
+      `• Date: ${formattedDate}`,
+      `• Time: ${formattedStartTime} - ${formattedEndTime}`,
+      `• Duration: ${durationText}`,
+      `• Mode: ${mode}`,
+      slotLocation ? `• Location: ${slotLocation}` : '',
+      notes ? `• Additional Notes: ${notes}` : '',
+    ].filter(Boolean);
+    
+    const description = descriptionParts.join('\n');
 
     console.log("Creating checkout session with booking details:", { 
       sessionName,
