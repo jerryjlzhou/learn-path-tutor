@@ -305,11 +305,16 @@ export function AuthPage() {
                     onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
                     disabled={loading}
                   />
-                  <Label htmlFor="acceptTerms" className="text-sm">
+                  <Label htmlFor="acceptTerms" className="text-sm cursor-pointer">
                     I accept the{' '}
-                    <Button variant="link" className="h-auto p-0 text-sm">
+                    <Link 
+                      to="/legal" 
+                      target="_blank"
+                      className="text-primary hover:underline font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       Terms & Privacy Policy
-                    </Button>
+                    </Link>
                   </Label>
                 </div>
               </>
