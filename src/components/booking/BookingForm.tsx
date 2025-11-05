@@ -43,7 +43,7 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
   const [customStartTime, setCustomStartTime] = useState<string>('');
   const [customEndTime, setCustomEndTime] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'later'>('stripe');
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'later'>('later');
   const [notes, setNotes] = useState('');
   const [availableSlots, setAvailableSlots] = useState<AvailabilitySlot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -422,18 +422,21 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
                 <Label>Payment Method</Label>
                 <RadioGroup value={paymentMethod} onValueChange={(value: 'stripe' | 'later') => setPaymentMethod(value)}>
                   <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                    <RadioGroupItem value="stripe" id="stripe" />
-                    <Label htmlFor="stripe" className="flex items-center gap-2 cursor-pointer">
-                      <CreditCard className="h-4 w-4" />
-                      Pay now with card (Stripe)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 p-3 border rounded-lg">
                     <RadioGroupItem value="later" id="later" />
                     <Label htmlFor="later" className="flex items-center gap-2 cursor-pointer">
                       <Banknote className="h-4 w-4" />
-                      Pay later (Cash/Bank Transfer)
+                      Cash/Bank Transfer (Pay later)
                     </Label>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded-lg opacity-60">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="stripe" id="stripe" disabled />
+                      <Label htmlFor="stripe" className="flex items-center gap-2 cursor-not-allowed text-muted-foreground">
+                        <CreditCard className="h-4 w-4" />
+                        Pay now on Card
+                      </Label>
+                    </div>
+                    <span className="text-xs text-muted-foreground">Card payments coming soon</span>
                   </div>
                 </RadioGroup>
               </div>
@@ -489,7 +492,7 @@ export function BookingForm({ preselectedMode }: BookingFormProps) {
               ) : (
                 <>
                   <Banknote className="h-4 w-4 mr-2" />
-                  Book Session (Pay Later)
+                  Confirm Booking
                 </>
               )}
             </Button>
