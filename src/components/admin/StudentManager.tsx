@@ -4,13 +4,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { 
   Users, 
   Search, 
   Mail, 
   Calendar, 
   BookOpen,
-  School
+  School,
+  Trash2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +45,9 @@ export function StudentManager() {
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
 
   const loadStudents = useCallback(async () => {
@@ -110,6 +124,54 @@ export function StudentManager() {
 
   const formatPrice = (priceInCents: number): string => {
     return `$${(priceInCents / 100).toFixed(2)}`;
+  };
+
+  const handleDeleteClick = (student: Student) => {
+    setStudentToDelete(student);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!studentToDelete) return;
+
+    setDeleting(true);
+    try {
+      // Call the admin delete user RPC function
+      const { data, error } = await supabase.rpc('admin_delete_user_account' as any, {
+        target_user_id: studentToDelete.user_id
+      });
+
+      if (error) {
+        console.error('RPC error:', error);
+        throw new Error(error.message || 'Failed to delete account');
+      }
+
+      // Check the response from the function
+      const result = data as { success: boolean; message?: string; error?: string };
+      if (result && !result.success) {
+        throw new Error(result.error || 'Failed to delete account');
+      }
+
+      toast({
+        title: "Student account deleted",
+        description: `${studentToDelete.full_name}'s account has been permanently deleted.`,
+      });
+
+      // Reload the students list
+      await loadStudents();
+    } catch (error) {
+      console.error('Error deleting student account:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast({
+        title: "Error deleting account",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setStudentToDelete(null);
+    }
   };
 
   if (loading) {
@@ -232,6 +294,14 @@ export function StudentManager() {
                             <BookOpen className="h-4 w-4 mr-2" />
                             View Bookings
                           </Button>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleDeleteClick(student)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Account
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -242,6 +312,30 @@ export function StudentManager() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Student Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{studentToDelete?.full_name}</strong>'s account?
+              <br /><br />
+              This action cannot be undone. This will permanently delete the student's account and remove their profile from the system. Their booking history will be preserved for records.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={deleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {deleting ? 'Deleting...' : 'Yes, delete account'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
