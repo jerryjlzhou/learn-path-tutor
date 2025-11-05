@@ -78,7 +78,6 @@ export function StudentManager() {
 
           return {
             ...profile,
-            email: 'Not available', // Simplified since email column doesn't exist in profiles
             bookings_count: studentBookings.length,
             total_spent: totalSpent,
             last_booking_date: lastBooking?.start_datetime,
