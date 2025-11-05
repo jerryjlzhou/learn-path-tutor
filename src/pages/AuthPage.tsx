@@ -142,8 +142,9 @@ export function AuthPage() {
           emailRedirectTo: `${window.location.origin}/auth`,
           data: {
             full_name: fullName,
-            school,
-            year_level: yearLevel,
+            // Ensure optional fields are null (not empty strings) to satisfy DB trigger expectations
+            school: school.trim() === '' ? null : school.trim(),
+            year_level: yearLevel === '' ? null : yearLevel,
           },
         },
       });
