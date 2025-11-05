@@ -21,17 +21,34 @@ export function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
-    // Check if user has a valid session from the reset link
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    (async () => {
+      // 1) Parse tokens from URL hash and set session (Supabase recovery links include tokens in the hash)
+      const hash = window.location.hash;
+      const hashParams = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
+      const access_token = hashParams.get('access_token');
+      const refresh_token = hashParams.get('refresh_token');
+
+      if (access_token && refresh_token) {
+        try {
+          await supabase.auth.setSession({ access_token, refresh_token });
+        } catch (e) {
+          // fall through to session check below
+        }
+        // Clean hash to avoid re-processing
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+
+      // 2) Check if a valid session exists after potential token handling
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
-          title: "Invalid reset link",
-          description: "This password reset link is invalid or has expired.",
+          title: "Invalid or expired reset link",
+          description: "Please request a new password reset email.",
           variant: "destructive",
         });
         navigate('/auth');
       }
-    });
+    })();
   }, [navigate, toast]);
 
   const validateForm = () => {
