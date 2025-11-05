@@ -239,6 +239,14 @@ export type Database = {
           error?: string
         }
       }
+      admin_delete_user_account: {
+        Args: { target_user_id: string }
+        Returns: {
+          success: boolean
+          message?: string
+          error?: string
+        }
+      }
     }
     Enums: {
       [_ in never]: never

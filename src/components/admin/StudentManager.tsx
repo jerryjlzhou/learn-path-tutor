@@ -136,7 +136,7 @@ export function StudentManager() {
     setDeleting(true);
     try {
       // Call the admin delete user RPC function
-      const { data, error } = await supabase.rpc('admin_delete_user_account' as any, {
+      const { data, error } = await supabase.rpc('admin_delete_user_account', {
         target_user_id: studentToDelete.user_id
       });
 
@@ -146,9 +146,9 @@ export function StudentManager() {
       }
 
       // Check the response from the function
-      const result = data as { success: boolean; message?: string; error?: string };
-      if (result && !result.success) {
-        throw new Error(result.error || 'Failed to delete account');
+      const result = data;
+      if (!result || !result.success) {
+        throw new Error(result?.error || 'Failed to delete account');
       }
 
       toast({
