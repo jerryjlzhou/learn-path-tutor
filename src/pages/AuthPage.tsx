@@ -36,14 +36,48 @@ export function AuthPage() {
     setMode(searchParams.get('mode') === 'signup' ? 'signup' : 'signin');
   }, [searchParams]);
 
-  // Check if user is already authenticated
+  // Handle email confirmation tokens and prevent conflicting redirects
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        navigate('/');
+    (async () => {
+      // Parse tokens from URL hash (Supabase appends these after confirm)
+      const hash = window.location.hash;
+      const hashParams = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
+      const access_token = hashParams.get('access_token');
+      const refresh_token = hashParams.get('refresh_token');
+
+      const hasTokenHash = !!(access_token && refresh_token);
+      const hasVerifyParams = searchParams.has('token_hash') && (searchParams.get('type') === 'signup' || searchParams.get('type') === 'recovery' || searchParams.get('type') === 'email_change');
+
+      // If tokens are present, set the session explicitly for reliability
+      if (hasTokenHash && access_token && refresh_token) {
+        try {
+          await supabase.auth.setSession({ access_token, refresh_token });
+        } catch (e) {
+          // ignore; getUser check below will handle
+        }
+        // Clean the hash to avoid re-processing
+        history.replaceState(null, '', window.location.pathname + window.location.search);
       }
-    });
-  }, [navigate]);
+
+      // After handling tokens, if user is signed in and this is a confirmation redirect, go to profile
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && (hasTokenHash || hasVerifyParams)) {
+        toast({
+          title: 'Email confirmed successfully!',
+          description: 'Welcome to Jenius Education 🎓',
+        });
+        navigate('/profile', { replace: true });
+        return;
+      }
+
+      // If user is already authenticated and not coming from a confirmation flow, optionally redirect
+      if (user && !hasTokenHash && !hasVerifyParams) {
+        // Keep user on the page if they intentionally opened /auth, or redirect to profile
+        // Choose to redirect to profile for better UX
+        navigate('/profile', { replace: true });
+      }
+    })();
+  }, [navigate, searchParams, toast]);
 
   const validateForm = () => {
     if (!email || !password) {
@@ -105,7 +139,7 @@ export function AuthPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/auth`,
           data: {
             full_name: fullName,
             school,
